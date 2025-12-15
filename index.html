@@ -162,126 +162,106 @@
         loadFromSupabase();
       }, []);
 
-      const loadFromSupabase = async () => {
-        setIsLoading(true);
-        try {
-          const { data: ordersData, error: ordersError } = await supabase
-            .from('replacement_orders')
-            .select('*')
-            .order('uploaded_at', { ascending: false })
-            .limit(1);
+     const loadFromSupabase = async () => {
+  setIsLoading(true);
+  try {
+    const { data: ordersData, error: ordersError } = await supabase
+      .from('replacement_orders')
+      .select('*')
+      .order('uploaded_at', { ascending: false });  // Get all rows
 
-          if (ordersError) throw ordersError;
+    if (ordersError) throw ordersError;
 
-          if (ordersData && ordersData.length > 0) {
-            setReplacementData(ordersData[0].data || []);
-          }
+    setReplacementData(ordersData || []);  // Use data directly as array of rows
 
-          const { data: metersData, error: metersError } = await supabase
-            .from('processed_meters')
-            .select('*')
-            .order('created_at', { ascending: false });
+    const { data: metersData, error: metersError } = await supabase
+      .from('processed_meters')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-          if (metersError) throw metersError;
+    if (metersError) throw metersError;
 
-          setProcessedMeters(metersData || []);
-        } catch (error) {
-          console.error('Error loading from Supabase:', error);
-          alert('Error loading data from database. Please check your internet connection.');
-        } finally {
-          setIsLoading(false);
-        }
-      };
+    setProcessedMeters(metersData || []);
+  } catch (error) {
+    console.error('Error loading from Supabase:', error);
+    alert('Error loading data from database. Please check your internet connection.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
       const lookupMeter = () => {
-        if (!oldMeterNumber.trim()) {
-          alert('Please enter an old meter number');
-          return;
-        }
+  if (!oldMeterNumber.trim()) {
+    alert('Please enter an old meter number');
+    return;
+  }
 
-        if (replacementData.length === 0) {
-          alert('No replacement orders found. Please contact admin.');
-          return;
-        }
+  if (replacementData.length === 0) {
+    alert('No replacement orders found. Please contact admin.');
+    return;
+  }
 
-        const possibleColumns = [
-          'OLD METER NUMBER',
-          'OLDMETERNUMBER', 
-          'OLD_METER_NUMBER',
-          'METER NUMBER',
-          'METER_NUMBER',
-          'METERNUMBER',
-          'OLD METER',
-          'OLDMETER'
-        ];
+  // Exact match
+  const meterData = replacementData.find(row => {
+    const oldMeter = row.old_meter_number;
+    return oldMeter && oldMeter.toString().trim().toUpperCase() === oldMeterNumber.toUpperCase();
+  });
 
-        let meterData = null;
-        
-        for (const column of possibleColumns) {
-          meterData = replacementData.find(row => {
-            const value = row[column];
-            return value && value.toString().trim().toUpperCase() === oldMeterNumber.toUpperCase();
-          });
-          
-          if (meterData) break;
-        }
-
-        if (!meterData) {
-          for (const column of possibleColumns) {
-            meterData = replacementData.find(row => {
-              const value = row[column];
-              return value && value.toString().trim().toUpperCase().includes(oldMeterNumber.toUpperCase());
-            });
-            
-            if (meterData) break;
-          }
-        }
-
-        if (meterData) {
-          setCurrentMeterData(meterData);
-        } else {
-          alert(`Meter "${oldMeterNumber}" not found in replacement orders.`);
-        }
-      };
+  // Partial match if exact not found
+  if (!meterData) {
+    const partialMatch = replacementData.find(row => {
+      const oldMeter = row.old_meter_number;
+      return oldMeter && oldMeter.toString().trim().toUpperCase().includes(oldMeterNumber.toUpperCase());
+    });
+    
+    if (partialMatch) {
+      setCurrentMeterData(partialMatch);
+    } else {
+      alert(`Meter "${oldMeterNumber}" not found in replacement orders.`);
+    }
+  } else {
+    setCurrentMeterData(meterData);
+  }
+};
 
       const addToDataset = async () => {
-        if (!currentMeterData) {
-          alert('Please lookup a meter first');
-          return;
-        }
+  if (!currentMeterData) {
+    alert('Please lookup a meter first');
+    return;
+  }
 
-        setIsSaving(true);
+  setIsSaving(true);
 
-        try {
-          const meterPhase = currentMeterData['METER PHASE'] || '';
-          const phaseValue = meterPhase.includes('3') ? '3' : '1';
-          
-          const faultType = currentMeterData['FAULT TYPE'] || currentMeterData['FAULTTYPE'] || currentMeterData['FAULT_TYPE'] || '';
-          const reasonForRemoval = replacementReasons[faultType] || faultType || 'Faulty Meter';
+  try {
+    const meterPhase = currentMeterData.meter_phase || '';
+    const phaseValue = meterPhase.includes('3') ? '3' : '1';
+    
+    const faultType = currentMeterData.fault_type || '';
+    const reasonForRemoval = replacementReasons[faultType] || faultType || 'Faulty Meter';
 
-          const contractorCode = currentMeterData['CONTRACTOR CODE'] || currentMeterData['CONTRACTORCODE'] || '';
-          const focName = contractorCodeToFOC[contractorCode] || contractorCode || 'Unknown FOC';
+    const contractorCode = currentMeterData.contractor_code || '';
+    const focName = contractorCodeToFOC[contractorCode] || contractorCode || 'Unknown FOC';
 
-          const processedMeter = {
-            box_number: boxNumber || 'N/A',
-            service_point_number: currentMeterData['SERVICE POINT NUMBER'] || currentMeterData['SERVICEPOINTNUMBER'] || currentMeterData['SERVICE_POINT_NUMBER'] || '',
-            meter_number: currentMeterData['OLD METER NUMBER'] || currentMeterData['OLDMETERNUMBER'] || currentMeterData['OLD_METER_NUMBER'] || '',
-            different_meter_number: differentMeterNumber || '',
-            ppm_cm: 'PPM',
-            units: '-',
-            ghc: '-',
-            year_of_make: yearOfMake || '',
-            uiu: '-',
-            phase: phaseValue,
-            enclosure: '',
-            sim_card: '',
-            cable_length: '',
-            date_removed: currentMeterData['DATE STARTED'] || currentMeterData['DATESTARTED'] || currentMeterData['DATE_STARTED'] || '',
-            reason_for_removal: reasonForRemoval,
-            breaker: '',
-            foc: focName,
-            created_at: new Date().toISOString()
-          };
+    const processedMeter = {
+      box_number: boxNumber || 'N/A',
+      service_point_number: currentMeterData.service_point_number?.toString() || '',
+      meter_number: currentMeterData.old_meter_number || '',
+      different_meter_number: differentMeterNumber || '',
+      ppm_cm: 'PPM',
+      units: '-',
+      ghc: '-',
+      year_of_make: yearOfMake || '',
+      uiu: '-',
+      phase: phaseValue,
+      enclosure: '',
+      sim_card: '',
+      cable_length: '',
+      date_removed: currentMeterData.date_started || '',
+      reason_for_removal: reasonForRemoval,
+      breaker: '',
+      foc: focName,
+      created_at: new Date().toISOString()
+    };
 
           const { data, error } = await supabase
             .from('processed_meters')
@@ -499,13 +479,13 @@
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-l-4 border-blue-500">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">Found Meter Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div><strong>Service Point:</strong> {currentMeterData['SERVICE POINT NUMBER'] || currentMeterData['SERVICEPOINTNUMBER'] || 'N/A'}</div>
-                      <div><strong>Old Meter:</strong> {currentMeterData['OLD METER NUMBER'] || currentMeterData['OLDMETERNUMBER'] || 'N/A'}</div>
-                      <div><strong>Customer:</strong> {currentMeterData['CUSTOMER NAME'] || currentMeterData['CUSTOMERNAME'] || 'N/A'}</div>
-                      <div><strong>Date Started:</strong> {currentMeterData['DATE STARTED'] || currentMeterData['DATESTARTED'] || 'N/A'}</div>
-                      <div><strong>Fault Type:</strong> {currentMeterData['FAULT TYPE'] || currentMeterData['FAULTTYPE'] || 'N/A'}</div>
-                      <div><strong>Contractor:</strong> {currentMeterData['CONTRACTOR CODE'] || 'N/A'}</div>
-                    </div>
+                       <div><strong>Service Point:</strong> {currentMeterData.service_point_number || 'N/A'}</div>
+                       <div><strong>Old Meter:</strong> {currentMeterData.old_meter_number || 'N/A'}</div>
+                       <div><strong>Customer:</strong> {currentMeterData.customer_name || 'N/A'}</div>
+                       <div><strong>Date Started:</strong> {currentMeterData.date_started || 'N/A'}</div>
+                       <div><strong>Fault Type:</strong> {currentMeterData.fault_type || 'N/A'}</div>
+                       <div><strong>Contractor:</strong> {currentMeterData.contractor_code || 'N/A'}</div>
+                   </div>
                   </div>
 
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-l-4 border-amber-500">

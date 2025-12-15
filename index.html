@@ -10,7 +10,6 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -24,12 +23,6 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Icon components
-    const Upload = ({ className }) => (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-    );
-
     const Search = ({ className }) => (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -159,7 +152,6 @@
       const [currentMeterData, setCurrentMeterData] = useState(null);
       const [isLoading, setIsLoading] = useState(false);
       const [isSaving, setIsSaving] = useState(false);
-      const [isUploading, setIsUploading] = useState(false);
       
       const [oldMeterNumber, setOldMeterNumber] = useState('');
       const [boxNumber, setBoxNumber] = useState('');
@@ -201,58 +193,6 @@
         }
       };
 
-      const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (!file.name.endsWith('.csv')) {
-          alert('Please upload a CSV file');
-          return;
-        }
-
-        setIsUploading(true);
-
-        Papa.parse(file, {
-          header: true,
-          skipEmptyLines: true,
-          complete: async (results) => {
-            try {
-              const csvData = results.data;
-              
-              if (csvData.length === 0) {
-                alert('CSV file is empty');
-                setIsUploading(false);
-                return;
-              }
-
-              const { data, error } = await supabase
-                .from('replacement_orders')
-                .insert([{
-                  data: csvData,
-                  uploaded_at: new Date().toISOString()
-                }])
-                .select();
-
-              if (error) throw error;
-
-              setReplacementData(csvData);
-              alert(`Successfully uploaded ${csvData.length} replacement orders!`);
-            } catch (error) {
-              console.error('Error uploading to Supabase:', error);
-              alert(`Error uploading data: ${error.message}`);
-            } finally {
-              setIsUploading(false);
-              event.target.value = '';
-            }
-          },
-          error: (error) => {
-            console.error('Error parsing CSV:', error);
-            alert('Error reading CSV file. Please check the file format.');
-            setIsUploading(false);
-          }
-        });
-      };
-
       const lookupMeter = () => {
         if (!oldMeterNumber.trim()) {
           alert('Please enter an old meter number');
@@ -260,14 +200,42 @@
         }
 
         if (replacementData.length === 0) {
-          alert('No replacement orders found. Please upload a CSV file first.');
+          alert('No replacement orders found. Please contact admin.');
           return;
         }
 
-        const meterData = replacementData.find(row => {
-          const value = row['OLD METER NUMBER'];
-          return value && value.toString().trim() === oldMeterNumber.trim();
-        });
+        const possibleColumns = [
+          'OLD METER NUMBER',
+          'OLDMETERNUMBER', 
+          'OLD_METER_NUMBER',
+          'METER NUMBER',
+          'METER_NUMBER',
+          'METERNUMBER',
+          'OLD METER',
+          'OLDMETER'
+        ];
+
+        let meterData = null;
+        
+        for (const column of possibleColumns) {
+          meterData = replacementData.find(row => {
+            const value = row[column];
+            return value && value.toString().trim().toUpperCase() === oldMeterNumber.toUpperCase();
+          });
+          
+          if (meterData) break;
+        }
+
+        if (!meterData) {
+          for (const column of possibleColumns) {
+            meterData = replacementData.find(row => {
+              const value = row[column];
+              return value && value.toString().trim().toUpperCase().includes(oldMeterNumber.toUpperCase());
+            });
+            
+            if (meterData) break;
+          }
+        }
 
         if (meterData) {
           setCurrentMeterData(meterData);
@@ -286,18 +254,18 @@
 
         try {
           const meterPhase = currentMeterData['METER PHASE'] || '';
-          const phaseValue = meterPhase.toString().includes('3') ? '3' : '1';
+          const phaseValue = meterPhase.includes('3') ? '3' : '1';
           
-          const faultType = currentMeterData['FAULT TYPE'] || '';
+          const faultType = currentMeterData['FAULT TYPE'] || currentMeterData['FAULTTYPE'] || currentMeterData['FAULT_TYPE'] || '';
           const reasonForRemoval = replacementReasons[faultType] || faultType || 'Faulty Meter';
 
-          const contractorCode = currentMeterData['CONTRACTOR CODE'] || '';
+          const contractorCode = currentMeterData['CONTRACTOR CODE'] || currentMeterData['CONTRACTORCODE'] || '';
           const focName = contractorCodeToFOC[contractorCode] || contractorCode || 'Unknown FOC';
 
           const processedMeter = {
             box_number: boxNumber || 'N/A',
-            service_point_number: currentMeterData['SERVICE POINT NUMBER'] || '',
-            meter_number: currentMeterData['OLD METER NUMBER'] || '',
+            service_point_number: currentMeterData['SERVICE POINT NUMBER'] || currentMeterData['SERVICEPOINTNUMBER'] || currentMeterData['SERVICE_POINT_NUMBER'] || '',
+            meter_number: currentMeterData['OLD METER NUMBER'] || currentMeterData['OLDMETERNUMBER'] || currentMeterData['OLD_METER_NUMBER'] || '',
             different_meter_number: differentMeterNumber || '',
             ppm_cm: 'PPM',
             units: '-',
@@ -308,7 +276,7 @@
             enclosure: '',
             sim_card: '',
             cable_length: '',
-            date_removed: currentMeterData['DATE STARTED'] || '',
+            date_removed: currentMeterData['DATE STARTED'] || currentMeterData['DATESTARTED'] || currentMeterData['DATE_STARTED'] || '',
             reason_for_removal: reasonForRemoval,
             breaker: '',
             foc: focName,
@@ -388,7 +356,7 @@
           'DATE METER REMOVED',
           'REASON FOR REMOVAL',
           'BREAKER',
-          'FOC'
+          'F0C'
         ];
 
         const data = [headers];
@@ -417,8 +385,8 @@
 
         const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Retired Meters');
-        XLSX.writeFile(workbook, `FOC_Retired_Meters_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Meters');
+        XLSX.writeFile(workbook, `FOC_Meter_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
       };
 
       if (isLoading) {
@@ -464,33 +432,6 @@
 
             <div className="bg-white/95 backdrop-blur-sm rounded-b-3xl shadow-2xl p-6 space-y-6">
               
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border-l-4 border-indigo-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Upload className="w-6 h-6" />
-                  Upload Replacement Orders (CSV)
-                </h2>
-                
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all cursor-pointer">
-                    <Upload className="w-5 h-5" />
-                    {isUploading ? 'Uploading...' : 'Choose CSV File'}
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
-                      className="hidden"
-                    />
-                  </label>
-                  
-                  {isUploading && <Loader className="w-6 h-6 animate-spin text-indigo-600" />}
-                </div>
-                
-                <p className="text-sm text-gray-600 mt-3">
-                  Upload the replacement orders CSV file. This will overwrite any existing orders.
-                </p>
-              </div>
-
               {replacementData.length > 0 ? (
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-l-4 border-green-500">
                   <div className="flex items-center gap-3">
@@ -507,7 +448,7 @@
                     <AlertCircle className="w-8 h-8 text-amber-600" />
                     <div>
                       <h3 className="text-xl font-bold text-gray-800">No Orders Found</h3>
-                      <p className="text-gray-600">Please upload a CSV file with replacement orders</p>
+                      <p className="text-gray-600">Contact admin to upload replacement orders to the system</p>
                     </div>
                   </div>
                 </div>
@@ -546,7 +487,7 @@
 
                 <button
                   onClick={lookupMeter}
-                  disabled={isLoading || replacementData.length === 0}
+                  disabled={isLoading}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Search className="w-5 h-5" />
@@ -559,14 +500,12 @@
                   <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-l-4 border-blue-500">
                     <h3 className="text-xl font-bold text-gray-800 mb-4">Found Meter Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div><strong>Service Point:</strong> {currentMeterData['SERVICE POINT NUMBER'] || 'N/A'}</div>
-                      <div><strong>Old Meter:</strong> {currentMeterData['OLD METER NUMBER'] || 'N/A'}</div>
-                      <div><strong>Customer:</strong> {currentMeterData['CUSTOMER NAME'] || 'N/A'}</div>
-                      <div><strong>Date Started:</strong> {currentMeterData['DATE STARTED'] || 'N/A'}</div>
-                      <div><strong>Fault Type:</strong> {currentMeterData['FAULT TYPE'] || 'N/A'}</div>
+                      <div><strong>Service Point:</strong> {currentMeterData['SERVICE POINT NUMBER'] || currentMeterData['SERVICEPOINTNUMBER'] || 'N/A'}</div>
+                      <div><strong>Old Meter:</strong> {currentMeterData['OLD METER NUMBER'] || currentMeterData['OLDMETERNUMBER'] || 'N/A'}</div>
+                      <div><strong>Customer:</strong> {currentMeterData['CUSTOMER NAME'] || currentMeterData['CUSTOMERNAME'] || 'N/A'}</div>
+                      <div><strong>Date Started:</strong> {currentMeterData['DATE STARTED'] || currentMeterData['DATESTARTED'] || 'N/A'}</div>
+                      <div><strong>Fault Type:</strong> {currentMeterData['FAULT TYPE'] || currentMeterData['FAULTTYPE'] || 'N/A'}</div>
                       <div><strong>Contractor:</strong> {currentMeterData['CONTRACTOR CODE'] || 'N/A'}</div>
-                      <div><strong>Meter Phase:</strong> {currentMeterData['METER PHASE'] || 'N/A'}</div>
-                      <div><strong>New Meter:</strong> {currentMeterData['NEW METER NUMBER'] || 'N/A'}</div>
                     </div>
                   </div>
 
@@ -597,8 +536,6 @@
                     </div>
 
                     <div className="flex gap-3 mt-6">
-                      <button
-                        onClick={addToDataset}
                       <button
                         onClick={addToDataset}
                         disabled={isSaving}

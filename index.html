@@ -163,32 +163,49 @@
       }, []);
 
      const loadFromSupabase = async () => {
-  setIsLoading(true);
-  try {
-    const { data: ordersData, error: ordersError } = await supabase
-      .from('replacement_orders')
-      .select('*')
-      .order('uploaded_at', { ascending: false });  // Get all rows
+        setIsLoading(true);
+        try {
+          // Fetch all records by setting a high limit or using pagination
+          let allOrders = [];
+          let from = 0;
+          const batchSize = 1000;
+          let hasMore = true;
 
-    if (ordersError) throw ordersError;
+          while (hasMore) {
+            const { data: ordersData, error: ordersError } = await supabase
+              .from('replacement_orders')
+              .select('*')
+              .order('uploaded_at', { ascending: false })
+              .range(from, from + batchSize - 1);
 
-    setReplacementData(ordersData || []);  // Use data directly as array of rows
+            if (ordersError) throw ordersError;
 
-    const { data: metersData, error: metersError } = await supabase
-      .from('processed_meters')
-      .select('*')
-      .order('created_at', { ascending: false });
+            if (ordersData && ordersData.length > 0) {
+              allOrders = [...allOrders, ...ordersData];
+              from += batchSize;
+              hasMore = ordersData.length === batchSize;
+            } else {
+              hasMore = false;
+            }
+          }
 
-    if (metersError) throw metersError;
+          setReplacementData(allOrders);
 
-    setProcessedMeters(metersData || []);
-  } catch (error) {
-    console.error('Error loading from Supabase:', error);
-    alert('Error loading data from database. Please check your internet connection.');
-  } finally {
-    setIsLoading(false);
-  }
-};
+          const { data: metersData, error: metersError } = await supabase
+            .from('processed_meters')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (metersError) throw metersError;
+
+          setProcessedMeters(metersData || []);
+        } catch (error) {
+          console.error('Error loading from Supabase:', error);
+          alert('Error loading data from database. Please check your internet connection.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
       const lookupMeter = () => {
   if (!oldMeterNumber.trim()) {

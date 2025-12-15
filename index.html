@@ -22,6 +22,12 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bHRtbWZ3d2FxYmthb3ZqcG9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3ODc5OTYsImV4cCI6MjA4MTM2Mzk5Nn0.rYnsIiCTt7YuC4pfgaenpuz2DOUgYScwAVxCDc3jzsg';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const User = ({ className }) => (
+     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+     </svg>
+    );
+    
     // Icon components
     const Search = ({ className }) => (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,20 +153,66 @@
     };
 
     const FOCDataEntry = () => {
-      const [replacementData, setReplacementData] = useState([]);
-      const [processedMeters, setProcessedMeters] = useState([]);
-      const [currentMeterData, setCurrentMeterData] = useState(null);
-      const [isLoading, setIsLoading] = useState(false);
-      const [isSaving, setIsSaving] = useState(false);
-      
-      const [oldMeterNumber, setOldMeterNumber] = useState('');
-      const [boxNumber, setBoxNumber] = useState('');
-      const [differentMeterNumber, setDifferentMeterNumber] = useState('');
-      const [yearOfMake, setYearOfMake] = useState('');
+    const [replacementData, setReplacementData] = useState([]);
+    const [processedMeters, setProcessedMeters] = useState([]);
+    const [currentMeterData, setCurrentMeterData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+  
+    const [oldMeterNumber, setOldMeterNumber] = useState('');
+    const [boxNumber, setBoxNumber] = useState('');
+    const [differentMeterNumber, setDifferentMeterNumber] = useState('');
+    const [yearOfMake, setYearOfMake] = useState('');
+    const [userId, setUserId] = useState('');
+    const [userName, setUserName] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
       useEffect(() => {
-        loadFromSupabase();
-      }, []);
+    // Check if user is already logged in
+    const savedUserId = localStorage.getItem('foc_user_id');
+    const savedUserName = localStorage.getItem('foc_user_name');
+    
+    if (savedUserId && savedUserName) {
+      setUserId(savedUserId);
+      setUserName(savedUserName);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      loadFromSupabase();
+    }
+  }, [isLoggedIn]);
+
+     
+    const handleLogin = () => {
+    const name = prompt('Enter your name/FOC identifier:');
+    if (name && name.trim()) {
+      const trimmedName = name.trim();
+      const generatedId = `foc_${trimmedName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+      
+      setUserId(generatedId);
+      setUserName(trimmedName);
+      setIsLoggedIn(true);
+      
+      localStorage.setItem('foc_user_id', generatedId);
+      localStorage.setItem('foc_user_name', trimmedName);
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout? Your unsaved work will remain in the system.')) {
+      localStorage.removeItem('foc_user_id');
+      localStorage.removeItem('foc_user_name');
+      setUserId('');
+      setUserName('');
+      setIsLoggedIn(false);
+      setProcessedMeters([]);
+      setCurrentMeterData(null);
+      clearForm();
+    }
+  };
 
      const loadFromSupabase = async () => {
         setIsLoading(true);
@@ -190,15 +242,16 @@
           }
 
           setReplacementData(allOrders);
+          
+ const { data: metersData, error: metersError } = await supabase
+  .from('processed_meters')
+  .select('*')
+  .eq('user_id', userId)  // ← ADD THIS LINE
+  .order('created_at', { ascending: false });
 
-          const { data: metersData, error: metersError } = await supabase
-            .from('processed_meters')
-            .select('*')
-            .order('created_at', { ascending: false });
+if (metersError) throw metersError;
 
-          if (metersError) throw metersError;
-
-          setProcessedMeters(metersData || []);
+setProcessedMeters(metersData || []);
         } catch (error) {
           console.error('Error loading from Supabase:', error);
           alert('Error loading data from database. Please check your internet connection.');
@@ -260,6 +313,8 @@
     const focName = contractorCodeToFOC[contractorCode] || contractorCode || 'Unknown FOC';
 
     const processedMeter = {
+      user_id: userId,        
+      user_name: userName,     
       box_number: boxNumber || 'N/A',
       service_point_number: currentMeterData.service_point_number?.toString() || '',
       meter_number: currentMeterData.old_meter_number || '',
@@ -316,14 +371,15 @@
   if (window.confirm('Are you sure you want to clear the entire dataset? This will delete all data from the cloud.')) {
     try {
       // Delete all records by getting all IDs and deleting them
-      const { data: allRecords, error: fetchError } = await supabase
-        .from('processed_meters')
-        .select('id');
+const { data: userRecords, error: fetchError } = await supabase
+  .from('processed_meters')
+  .select('id')
+  .eq('user_id', userId);  // ← ADD THIS LINE
 
-      if (fetchError) throw fetchError;
+if (fetchError) throw fetchError;
 
-      if (allRecords && allRecords.length > 0) {
-        const ids = allRecords.map(record => record.id);
+if (userRecords && userRecords.length > 0) {  // ← Change allRecords to userRecords
+  const ids = userRecords.map(record => record.id);
         const { error: deleteError } = await supabase
           .from('processed_meters')
           .delete()
@@ -394,8 +450,34 @@
         const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Meters');
-        XLSX.writeFile(workbook, `FOC_Meter_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
+        XLSX.writeFile(workbook, `FOC_Meter_Data_${userName}_${new Date().toISOString().split('T')[0]}.xlsx`);
       };
+
+      // ADD THIS ENTIRE LOGIN SCREEN
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+          <div className="text-center mb-8">
+            <User className="w-20 h-20 mx-auto text-indigo-600 mb-4" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">FOC Login</h1>
+            <p className="text-gray-600">Enter your name to start recording meter data</p>
+          </div>
+          
+          <button
+            onClick={handleLogin}
+            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all text-lg"
+          >
+            Login / Start Session
+          </button>
+          
+          <div className="mt-6 text-center text-sm text-gray-600">
+            <p>Your data will be saved separately from other FOCs</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
       if (isLoading) {
         return (
@@ -427,15 +509,30 @@
 
           <div className="max-w-6xl mx-auto relative z-10">
             <div className="bg-gradient-to-r from-slate-800 to-blue-900 rounded-t-3xl p-8 text-white shadow-2xl">
-              <h1 className="text-4xl font-bold mb-2 text-center">FOC Retired Meter Reconcilation</h1>
-              <button
-                onClick={loadFromSupabase}
-                className="mt-4 mx-auto flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh Data
-              </button>
-            </div>
+  <div className="flex justify-between items-center mb-4">
+    <div>
+      <h1 className="text-4xl font-bold mb-2">FOC Retired Meter Reconciliation</h1>
+      <div className="flex items-center gap-2 text-blue-200">
+        <User className="w-5 h-5" />
+        <span className="text-lg">Logged in as: <strong>{userName}</strong></span>
+      </div>
+    </div>
+    <button
+      onClick={handleLogout}
+      className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-all"
+    >
+      Logout
+    </button>
+  </div>
+  
+  <button
+    onClick={loadFromSupabase}
+    className="mt-4 flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all"
+  >
+    <RefreshCw className="w-4 h-4" />
+    Refresh My Data
+  </button>
+</div>
 
             <div className="bg-white/95 backdrop-blur-sm rounded-b-3xl shadow-2xl p-6 space-y-6">
               

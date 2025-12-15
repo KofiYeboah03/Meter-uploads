@@ -315,16 +315,27 @@
         
         if (window.confirm('Are you sure you want to clear the entire dataset? This will delete all data from the cloud.')) {
           try {
-            const { error } = await supabase
+            // Delete all records by getting all IDs and deleting them
+            const { data: allRecords, error: fetchError } = await supabase
               .from('processed_meters')
-              .delete()
-              .neq('id', 0);
+              .select('id');
 
-            if (error) throw error;
+            if (fetchError) throw fetchError;
+
+            if (allRecords && allRecords.length > 0) {
+              const ids = allRecords.map(record => record.id);
+              const { error: deleteError } = await supabase
+                .from('processed_meters')
+                .delete()
+                .in('id', ids);
+
+              if (deleteError) throw deleteError;
+            }
 
             setProcessedMeters([]);
             alert('Dataset cleared successfully!');
           } catch (error) {
+            console.error('Clear dataset error:', error);
             alert(`Error clearing dataset: ${error.message}`);
           }
         }

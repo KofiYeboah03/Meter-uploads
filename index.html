@@ -653,16 +653,27 @@ processedMeters.forEach(meter => {
       />
     </div>
 
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">Manufacturer</label>
-      <input
-        type="text"
-        value={manufacturer}
-        onChange={(e) => setManufacturer(e.target.value)}
-        placeholder="Enter manufacturer"
-        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-      />
-    </div>
+<div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">Manufacturer</label>
+  <select
+    value={manufacturer}
+    onChange={(e) => setManufacturer(e.target.value)}
+    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all bg-white"
+  >
+    <option value="">Select Manufacturer</option>
+    <option value="Saral-S1A">Saral-S1A</option>
+    <option value="Undefined 1 (Conv.)-Undefined">Undefined 1 (Conv.)-Undefined</option>
+    <option value="KAIFA-CG102E">KAIFA-CG102E</option>
+    <option value="GEM-EM341-4">GEM-EM341-4</option>
+    <option value="INTECH-HXE12">INTECH-HXE12</option>
+    <option value="SECURE SPRINT 350-IEC-62053-21">SECURE SPRINT 350-IEC-62053-21</option>
+    <option value="I-CREDIT 350-E1C">I-CREDIT 350-E1C</option>
+    <option value="MBH POWER-MN123E">MBH POWER-MN123E</option>
+    <option value="LONGI">LONGI</option>
+    <option value="SMART CASH (BXC)-RD363Q">SMART CASH (BXC)-RD363Q</option>
+    <option value="KUNKUN">KUNKUN</option>
+  </select>
+</div>
 
     <div>
       <label className="block text-sm font-semibold text-gray-700 mb-2">Final Reading</label>
@@ -675,17 +686,26 @@ processedMeters.forEach(meter => {
       />
     </div>
 
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
-      <input
-        type="text"
-        value={rating}
-        onChange={(e) => setRating(e.target.value)}
-        placeholder="Enter rating"
-        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-      />
-    </div>
-  </div>
+<div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+  <select
+    value={rating}
+    onChange={(e) => setRating(e.target.value)}
+    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all bg-white"
+  >
+    <option value="">Select Rating</option>
+    <option value="5/60">5/60</option>
+    <option value="5/100">5/100</option>
+    <option value="5/25">5/25</option>
+    <option value="5/15">5/15</option>
+    <option value="10/100">10/100</option>
+    <option value="10/60">10/60</option>
+    <option value="10/80">10/80</option>
+    <option value="15/60">15/60</option>
+    <option value="20/80">20/80</option>
+    <option value="20/60">20/60</option>
+  </select>
+</div>
 
                     <div className="flex gap-3 mt-6">
                       <button

@@ -505,297 +505,273 @@ processedMeters.forEach(meter => {
         );
       }
 
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 p-4">
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-white rounded-full opacity-20 animate-pulse"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 5}s`,
-                  animationDuration: `${3 + Math.random() * 4}s`
-                }}
-              />
-            ))}
+       return (
+        <div className="min-h-screen bg-gray-50">
+          {/* Top Navigation Bar */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-800">FOC Retired Meter Reconciliation</h1>
+                <p className="text-sm text-gray-500 mt-1">Replacement Service Orders</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">{userName}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-all"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="max-w-6xl mx-auto relative z-10">
-            <div className="bg-gradient-to-r from-slate-800 to-blue-900 rounded-t-3xl p-8 text-white shadow-2xl">
-  <div className="flex justify-between items-center mb-4">
-    <div>
-      <h1 className="text-4xl font-bold mb-2">FOC Retired Meter Reconciliation</h1>
-      <div className="flex items-center gap-2 text-blue-200">
-        <User className="w-5 h-5" />
-        <span className="text-lg">Logged in as: <strong>{userName}</strong></span>
-      </div>
-    </div>
-    <button
-      onClick={handleLogout}
-      className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-all"
-    >
-      Logout
-    </button>
-  </div>
-  
-  <button
-    onClick={loadFromSupabase}
-    className="mt-4 flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all"
-  >
-    <RefreshCw className="w-4 h-4" />
-    Refresh My Data
-  </button>
-</div>
+          <div className="max-w-7xl mx-auto p-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-sm text-gray-500 mb-1">Total Orders</div>
+                <div className="text-2xl font-bold text-gray-800">{replacementData.length}</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-sm text-gray-500 mb-1">Processed</div>
+                <div className="text-2xl font-bold text-green-600">{processedMeters.length}</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="text-sm text-gray-500 mb-1">Pending</div>
+                <div className="text-2xl font-bold text-orange-600">{replacementData.length - processedMeters.length}</div>
+              </div>
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <button
+                  onClick={loadFromSupabase}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh Data
+                </button>
+              </div>
+            </div>
 
-            <div className="bg-white/95 backdrop-blur-sm rounded-b-3xl shadow-2xl p-6 space-y-6">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
               
-              {replacementData.length > 0 ? (
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border-l-4 border-green-500">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800">Replacement Orders Loaded</h3>
-                      <p className="text-gray-600">{replacementData.length} orders available from cloud database</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-l-4 border-amber-500">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-8 h-8 text-amber-600" />
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800">No Orders Found</h3>
-                      <p className="text-gray-600">Contact admin to upload replacement orders to the system</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 border-l-4 border-indigo-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Search className="w-6 h-6" />
-                  Meter Data Entry
-                </h2>
+              {/* Meter Lookup Section */}
+              <div className="border-b border-gray-200 pb-4 mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Meter Data Entry</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Old Meter Number *</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Old Meter Number</label>
                     <input
                       type="text"
                       value={oldMeterNumber}
                       onChange={(e) => setOldMeterNumber(e.target.value)}
-                      placeholder="Enter old meter number"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                      placeholder="Enter meter number"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                       onKeyPress={(e) => e.key === 'Enter' && lookupMeter()}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Box Number</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Box Number</label>
                     <input
                       type="text"
                       value={boxNumber}
                       onChange={(e) => setBoxNumber(e.target.value)}
                       placeholder="Enter box number"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                     />
                   </div>
+
+                  <div className="flex items-end">
+                    <button
+                      onClick={lookupMeter}
+                      disabled={isLoading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Search className="w-4 h-4" />
+                      Lookup Meter
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  onClick={lookupMeter}
-                  disabled={isLoading}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Search className="w-5 h-5" />
-                  Lookup Meter Data
-                </button>
               </div>
-              
-             {currentMeterData && (
-  <>
-    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-l-4 border-blue-500">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Found Meter Details</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div><strong>Service Point:</strong> {currentMeterData.service_point_number || 'N/A'}</div>
-        <div><strong>Old Meter:</strong> {currentMeterData.old_meter_number || 'N/A'}</div>
-        <div><strong>Customer:</strong> {currentMeterData.customer_name || 'N/A'}</div>
-        <div><strong>Date Started:</strong> {currentMeterData.date_started || 'N/A'}</div>
-        <div><strong>Fault Type:</strong> {currentMeterData.fault_type || 'N/A'}</div>
-        <div><strong>Contractor:</strong> {currentMeterData.contractor_code || 'N/A'}</div>
-      </div>
-    </div>
 
-    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-l-4 border-amber-500">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Additional Information</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Different Number on Field</label>
-          <input
-            type="text"
-            value={differentMeterNumber}
-            onChange={(e) => setDifferentMeterNumber(e.target.value)}
-            placeholder="If different from old meter"
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Year of Make</label>
-          <input
-            type="number"
-            value={yearOfMake}
-            onChange={(e) => setYearOfMake(e.target.value)}
-            placeholder="Enter year"
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-          />
-        </div>
+              {currentMeterData && (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Found Meter Details</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div><span className="text-gray-500">Service Point:</span> <span className="font-medium">{currentMeterData.service_point_number || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Old Meter:</span> <span className="font-medium">{currentMeterData.old_meter_number || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{currentMeterData.customer_name || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Date Started:</span> <span className="font-medium">{currentMeterData.date_started || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Fault Type:</span> <span className="font-medium">{currentMeterData.fault_type || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Contractor:</span> <span className="font-medium">{currentMeterData.contractor_code || 'N/A'}</span></div>
+                    </div>
+                  </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Manufacturer</label>
-          <select
-            value={manufacturer}
-            onChange={(e) => setManufacturer(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all bg-white"
-          >
-            <option value="">Select Manufacturer</option>
-            <option value="Saral-S1A">Saral-S1A</option>
-            <option value="Undefined 1 (Conv.)-Undefined">Undefined 1 (Conv.)-Undefined</option>
-            <option value="KAIFA-CG102E">KAIFA-CG102E</option>
-            <option value="GEM-EM341-4">GEM-EM341-4</option>
-            <option value="INTECH-HXE12">INTECH-HXE12</option>
-            <option value="SECURE SPRINT 350-IEC-62053-21">SECURE SPRINT 350-IEC-62053-21</option>
-            <option value="I-CREDIT 350-E1C">I-CREDIT 350-E1C</option>
-            <option value="MBH POWER-MN123E">MBH POWER-MN123E</option>
-            <option value="LONGI">LONGI</option>
-            <option value="SMART CASH (BXC)-RD363Q">SMART CASH (BXC)-RD363Q</option>
-            <option value="KUNKUN">KUNKUN</option>
-          </select>
-        </div>
+                  <div className="border-t border-gray-200 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Additional Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Different Number on Field</label>
+                        <input
+                          type="text"
+                          value={differentMeterNumber}
+                          onChange={(e) => setDifferentMeterNumber(e.target.value)}
+                          placeholder="If different"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Year of Make</label>
+                        <input
+                          type="number"
+                          value={yearOfMake}
+                          onChange={(e) => setYearOfMake(e.target.value)}
+                          placeholder="Enter year"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Final Reading</label>
-          <input
-            type="text"
-            value={finalReading}
-            onChange={(e) => setFinalReading(e.target.value)}
-            placeholder="Enter final reading"
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all"
-          />
-        </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Manufacturer</label>
+                        <select
+                          value={manufacturer}
+                          onChange={(e) => setManufacturer(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                        >
+                          <option value="">Select Manufacturer</option>
+                          <option value="Saral-S1A">Saral-S1A</option>
+                          <option value="Undefined 1 (Conv.)-Undefined">Undefined 1 (Conv.)-Undefined</option>
+                          <option value="KAIFA-CG102E">KAIFA-CG102E</option>
+                          <option value="GEM-EM341-4">GEM-EM341-4</option>
+                          <option value="INTECH-HXE12">INTECH-HXE12</option>
+                          <option value="SECURE SPRINT 350-IEC-62053-21">SECURE SPRINT 350-IEC-62053-21</option>
+                          <option value="I-CREDIT 350-E1C">I-CREDIT 350-E1C</option>
+                          <option value="MBH POWER-MN123E">MBH POWER-MN123E</option>
+                          <option value="LONGI">LONGI</option>
+                          <option value="SMART CASH (BXC)-RD363Q">SMART CASH (BXC)-RD363Q</option>
+                          <option value="KUNKUN">KUNKUN</option>
+                        </select>
+                      </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
-          <select
-            value={rating}
-            onChange={(e) => setRating(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all bg-white"
-          >
-            <option value="">Select Rating</option>
-            <option value="5/60">5/60</option>
-            <option value="5/100">5/100</option>
-            <option value="5/25">5/25</option>
-            <option value="5/15">5/15</option>
-            <option value="10/100">10/100</option>
-            <option value="10/60">10/60</option>
-            <option value="10/80">10/80</option>
-            <option value="15/60">15/60</option>
-            <option value="20/80">20/80</option>
-            <option value="20/60">20/60</option>
-          </select>
-        </div>
-      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Final Reading</label>
+                        <input
+                          type="text"
+                          value={finalReading}
+                          onChange={(e) => setFinalReading(e.target.value)}
+                          placeholder="Enter final reading"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                      </div>
 
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={addToDataset}
-          disabled={isSaving}
-          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSaving ? <Loader className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          {isSaving ? 'Saving...' : 'Add to Dataset'}
-        </button>
-        
-        <button
-          onClick={clearForm}
-          className="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all"
-        >
-          Clear Form
-        </button>
-      </div>
-    </div>
-  </>
-)}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Rating</label>
+                        <select
+                          value={rating}
+                          onChange={(e) => setRating(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                        >
+                          <option value="">Select Rating</option>
+                          <option value="5/60">5/60</option>
+                          <option value="5/100">5/100</option>
+                          <option value="5/25">5/25</option>
+                          <option value="5/15">5/15</option>
+                          <option value="10/100">10/100</option>
+                          <option value="10/60">10/60</option>
+                          <option value="10/80">10/80</option>
+                          <option value="15/60">15/60</option>
+                          <option value="20/80">20/80</option>
+                          <option value="20/60">20/60</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={addToDataset}
+                        disabled={isSaving}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        {isSaving ? 'Saving...' : 'Add to Dataset'}
+                      </button>
+                      
+                      <button
+                        onClick={clearForm}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all"
+                      >
+                        Clear Form
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {processedMeters.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border-l-4 border-purple-500">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">Dataset Summary</h2>
-                  
-                  <div className="mb-4">
-                    <div className="flex justify-between mb-2">
-                      <span className="font-semibold">Total Meters Processed</span>
-                      <span className="font-semibold">{processedMeters.length} meters</span>
+                <div className="border-t border-gray-200 pt-6 mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-800">Processed Meters</h2>
+                      <p className="text-sm text-gray-500">Showing 1 to {Math.min(10, processedMeters.length)} of {processedMeters.length} results</p>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min((processedMeters.length / 25) * 100, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto rounded-lg shadow max-h-96 overflow-y-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white sticky top-0">
-                        <tr>
-                          <th className="px-4 py-3 text-left">Box</th>
-                          <th className="px-4 py-3 text-left">Service Point</th>
-                          <th className="px-4 py-3 text-left">Meter</th>
-                          <th className="px-4 py-3 text-left">Year</th>
-                          <th className="px-4 py-3 text-left">FOC</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white">
-                        {processedMeters.map((meter, index) => (
-                          <tr key={meter.id || index} className="border-b hover:bg-purple-50 transition-colors">
-                            <td className="px-4 py-3">{meter.box_number}</td>
-                            <td className="px-4 py-3">{meter.service_point_number}</td>
-                            <td className="px-4 py-3">{meter.meter_number}</td>
-                            <td className="px-4 py-3">{meter.year_of_make}</td>
-                            <td className="px-4 py-3">{meter.foc}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={exportExcel}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      Export Excel
-                    </button>
                     
-                    <button
-                      onClick={clearDataset}
-                      className="bg-gradient-to-r from-red-500 to-rose-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all flex items-center gap-2"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                      Clear Dataset
-                    </button>
-                  </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={exportExcel}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                      >
+                        <Download className="w-4 h-4" /> Export Excel </button>
+                      <button
+                    onClick={clearDataset}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Clear All
+                  </button>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    };
+              </div>
 
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Box</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Service Point</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Meter Number</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Year</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Manufacturer</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">FOC</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {processedMeters.map((meter, index) => (
+                        <tr key={meter.id || index} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-gray-800">{meter.box_number}</td>
+                          <td className="px-4 py-3 text-gray-800">{meter.service_point_number}</td>
+                          <td className="px-4 py-3 text-gray-800 font-medium">{meter.meter_number}</td>
+                          <td className="px-4 py-3 text-gray-600">{meter.year_of_make}</td>
+                          <td className="px-4 py-3 text-gray-600">{meter.manufacturer}</td>
+                          <td className="px-4 py-3 text-gray-800">{meter.foc}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+      
     ReactDOM.render(<FOCDataEntry />, document.getElementById('root'));
   </script>
 </body>

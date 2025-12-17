@@ -613,21 +613,7 @@ processedMeters.forEach(meter => {
                   Lookup Meter Data
                 </button>
               </div>
-
-              {currentMeterData && (
-                <>
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-l-4 border-blue-500">
-                    <h3 className="text-xl font-bold text-gray-800 mb-4">Found Meter Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                       <div><strong>Service Point:</strong> {currentMeterData.service_point_number || 'N/A'}</div>
-                       <div><strong>Old Meter:</strong> {currentMeterData.old_meter_number || 'N/A'}</div>
-                       <div><strong>Customer:</strong> {currentMeterData.customer_name || 'N/A'}</div>
-                       <div><strong>Date Started:</strong> {currentMeterData.date_started || 'N/A'}</div>
-                       <div><strong>Fault Type:</strong> {currentMeterData.fault_type || 'N/A'}</div>
-                       <div><strong>Contractor:</strong> {currentMeterData.contractor_code || 'N/A'}</div>
-                   </div>
-                  </div>
-
+              
              {currentMeterData && (
   <>
     <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border-l-4 border-blue-500">

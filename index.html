@@ -469,37 +469,39 @@ processedMeters.forEach(meter => {
       };
 
       // ADD THIS ENTIRE LOGIN SCREEN
-  if (!isLoggedIn) {
+if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 max-w-md w-full">
           <div className="text-center mb-8">
-            <User className="w-20 h-20 mx-auto text-indigo-600 mb-4" />
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">FOC Login</h1>
-            <p className="text-gray-600">Enter your name to start recording meter data</p>
+            <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+              <User className="w-8 h-8 text-blue-600" />
+            </div>
+            <h1 className="text-2xl font-semibold text-gray-800 mb-2">FOC Login</h1>
+            <p className="text-sm text-gray-600">Enter your name to start recording meter data</p>
           </div>
           
           <button
             onClick={handleLogin}
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-4 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all text-lg"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all text-base"
           >
             Login / Start Session
           </button>
           
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-xs text-gray-500">
             <p>Your data will be saved separately from other FOCs</p>
           </div>
         </div>
       </div>
     );
-  }
+}
 
       if (isLoading) {
         return (
-          <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 flex items-center justify-center">
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="text-center">
-              <Loader className="w-16 h-16 animate-spin text-white mx-auto mb-4" />
-              <p className="text-white text-xl font-semibold">Loading data from cloud...</p>
+              <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <p className="text-gray-700 text-lg font-medium">Loading data from cloud...</p>
             </div>
           </div>
         );

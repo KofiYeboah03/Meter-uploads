@@ -22,13 +22,15 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx6bHRtbWZ3d2FxYmthb3ZqcG9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3ODc5OTYsImV4cCI6MjA4MTM2Mzk5Nn0.rYnsIiCTt7YuC4pfgaenpuz2DOUgYScwAVxCDc3jzsg';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const MAX_ENTRIES = 25;
+
+    // Icon components
     const User = ({ className }) => (
-     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-     </svg>
+      </svg>
     );
     
-    // Icon components
     const Search = ({ className }) => (
       <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -53,18 +55,6 @@
       </svg>
     );
 
-    const AlertCircle = ({ className }) => (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
-
-    const CheckCircle = ({ className }) => (
-      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    );
-
     const Loader = ({ className }) => (
       <svg className={className} fill="none" viewBox="0 0 24 24">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -78,149 +68,71 @@
       </svg>
     );
 
-    const replacementReasons = {
-      'RR001': 'Meter reversing',
-      'RR002': 'Meter Damaged by Customer',
-      'RR003': 'Difficult to read',
-      'RR004': 'Defective Register',
-      'RR005': 'Credit not Reducing',
-      'RR006': 'No Credit Display',
-      'RR007': 'Faulty Meter after analyzer test',
-      'RR008': 'Date and Time Drift',
-      'RR009': 'Faulty Battery',
-      'RR010': 'Faulty Relay',
-      'RR011': 'Frequent Tripping',
-      'RR012': 'No Output Voltage',
-      'RR013': 'Tampered Meter',
-      'RR014': 'Error on meter (ie.3,7,4,10,13,16)',
-      'RR015': 'Over Voltage',
-      'RR016': 'under voltage',
-      'RR017': 'Relay open',
-      'RR018': 'Faulty Breaker',
-      'RR019': 'Meter Beeping',
-      'RR020': 'Faulty Automatic Billing Reset',
-      'RR021': 'Loss of Memory Register',
-      'RR022': 'Zero Consumption',
-      'RR023': 'Blur / Defaced Screen',
-      'RR024': 'Faulty Modem',
-      'RR025': 'Wrong Meter Number Installed (SWAP)',
-      'RR026': 'Meter Creeping',
-      'RR027': 'Faulty User Interface Unit',
-      'RR028': 'No Communication with Server',
-      'RR029': 'Meter No. Name plate Different from No. in Meter Memory',
-      'RR030': 'Meter stopped',
-      'RR031': 'Burnt Meter Terminal',
-      'RR032': 'Glass broken',
-      'RR033': 'Obsolete meter',
-      'RR034': 'No Rotor Movement',
-      'RR035': 'Rotor Stops Intermittently',
-      'RR036': 'Rotor Stops at Low Load',
-      'RR037': 'Stolen Meter',
-      'RR038': 'Screen Off',
-      'RR039': 'Mass replacement',
-      'RR040': 'No communication',
-      'RR041': 'Suspected Faulty Meter',
-      'RR042': 'Faulty Card Reader',
-      'RR043': 'Meter Upgrade (Single Phase to Three Phase)',
-      'RR044': 'Meter Downgrade (Three Phase to Single Phase)'
-    };
-
-    const contractorCodeToFOC = {
-      'SP0026': 'THONY AJ',
-      'SP0025': 'WENDYDAM', 
-      'SP0024': 'EDEN-ROSAMART',
-      'SP0023': 'NAKOBUA',
-      'SP0022': 'JACKSON',
-      'SP0021': 'YEGBE',
-      'SP0020': 'WESTPOOL',
-      'SP0019': 'OTUB',
-      'SP0018': 'MEGAGIFY',
-      'SP0017': 'MK CABLE',
-      'SP0016': 'OHEMEN',
-      'SP0015': 'SIR CHARLES',
-      'SP0014': 'WEST VIDAM',
-      'SP0013': 'NAADEEABLE',
-      'SP0012': 'PRESTIGE',
-      'SP0011': 'HIMK',
-      'SP0010': 'NAADEEABLE',
-      'SP0009': 'ANDYMARK',
-      'SP0008': 'BERTH',
-      'SP0007': 'IONIC',
-      'SP0006': 'KOSMEN',
-      'SP0005': 'MINYA',
-      'SP0004': 'SIMVID',
-      'SP0003': 'SIMVID'
-    };
+    const AlertCircle = ({ className }) => (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
 
     const FOCDataEntry = () => {
-    const [replacementData, setReplacementData] = useState([]);
-    const [processedMeters, setProcessedMeters] = useState([]);
-    const [currentMeterData, setCurrentMeterData] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-  
-    const [oldMeterNumber, setOldMeterNumber] = useState('');
-    const [boxNumber, setBoxNumber] = useState('');
-    const [differentMeterNumber, setDifferentMeterNumber] = useState('');
-    const [yearOfMake, setYearOfMake] = useState('');
-    const [manufacturer, setManufacturer] = useState('');
-    const [finalReading, setFinalReading] = useState('');
-    const [rating, setRating] = useState('');
-    const [userId, setUserId] = useState('');
-    const [userName, setUserName] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [replacementData, setReplacementData] = useState([]);
+      const [processedMeters, setProcessedMeters] = useState([]);
+      const [currentMeterData, setCurrentMeterData] = useState(null);
+      const [isLoading, setIsLoading] = useState(false);
+      const [isSaving, setIsSaving] = useState(false);
+      const [oldMeterNumber, setOldMeterNumber] = useState('');
+      const [userId, setUserId] = useState('');
+      const [userName, setUserName] = useState('');
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
 
       useEffect(() => {
-    // Check if user is already logged in
-    const savedUserId = localStorage.getItem('foc_user_id');
-    const savedUserName = localStorage.getItem('foc_user_name');
-    
-    if (savedUserId && savedUserName) {
-      setUserId(savedUserId);
-      setUserName(savedUserName);
-      setIsLoggedIn(true);
-    }
-  }, []);
+        const savedUserId = localStorage.getItem('foc_user_id');
+        const savedUserName = localStorage.getItem('foc_user_name');
+        
+        if (savedUserId && savedUserName) {
+          setUserId(savedUserId);
+          setUserName(savedUserName);
+          setIsLoggedIn(true);
+        }
+      }, []);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      loadFromSupabase();
-    }
-  }, [isLoggedIn]);
+      useEffect(() => {
+        if (isLoggedIn) {
+          loadFromSupabase();
+        }
+      }, [isLoggedIn]);
 
-     
-    const handleLogin = () => {
-    const name = prompt('Enter your name/FOC identifier:');
-    if (name && name.trim()) {
-      const trimmedName = name.trim();
-      const generatedId = `foc_${trimmedName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
-      
-      setUserId(generatedId);
-      setUserName(trimmedName);
-      setIsLoggedIn(true);
-      
-      localStorage.setItem('foc_user_id', generatedId);
-      localStorage.setItem('foc_user_name', trimmedName);
-    }
-  };
+      const handleLogin = () => {
+        const name = prompt('Enter your name/FOC identifier:');
+        if (name && name.trim()) {
+          const trimmedName = name.trim();
+          const generatedId = `foc_${trimmedName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+          
+          setUserId(generatedId);
+          setUserName(trimmedName);
+          setIsLoggedIn(true);
+          
+          localStorage.setItem('foc_user_id', generatedId);
+          localStorage.setItem('foc_user_name', trimmedName);
+        }
+      };
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout? Your unsaved work will remain in the system.')) {
-      localStorage.removeItem('foc_user_id');
-      localStorage.removeItem('foc_user_name');
-      setUserId('');
-      setUserName('');
-      setIsLoggedIn(false);
-      setProcessedMeters([]);
-      setCurrentMeterData(null);
-      clearForm();
-    }
-  };
+      const handleLogout = () => {
+        if (window.confirm('Are you sure you want to logout? Your unsaved work will remain in the system.')) {
+          localStorage.removeItem('foc_user_id');
+          localStorage.removeItem('foc_user_name');
+          setUserId('');
+          setUserName('');
+          setIsLoggedIn(false);
+          setProcessedMeters([]);
+          setCurrentMeterData(null);
+          clearForm();
+        }
+      };
 
-     const loadFromSupabase = async () => {
+      const loadFromSupabase = async () => {
         setIsLoading(true);
         try {
-          // Fetch all records by setting a high limit or using pagination
           let allOrders = [];
           let from = 0;
           const batchSize = 1000;
@@ -246,15 +158,15 @@
 
           setReplacementData(allOrders);
           
- const { data: metersData, error: metersError } = await supabase
-  .from('processed_meters')
-  .select('*')
-  .eq('user_id', userId)  // ← ADD THIS LINE
-  .order('created_at', { ascending: false });
+          const { data: metersData, error: metersError } = await supabase
+            .from('processed_meters')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
 
-if (metersError) throw metersError;
+          if (metersError) throw metersError;
 
-setProcessedMeters(metersData || []);
+          setProcessedMeters(metersData || []);
         } catch (error) {
           console.error('Error loading from Supabase:', error);
           alert('Error loading data from database. Please check your internet connection.');
@@ -264,82 +176,57 @@ setProcessedMeters(metersData || []);
       };
 
       const lookupMeter = () => {
-  if (!oldMeterNumber.trim()) {
-    alert('Please enter an old meter number');
-    return;
-  }
+        if (!oldMeterNumber.trim()) {
+          alert('Please enter an old meter number');
+          return;
+        }
 
-  if (replacementData.length === 0) {
-    alert('No replacement orders found. Please contact admin.');
-    return;
-  }
+        if (replacementData.length === 0) {
+          alert('No replacement orders found. Please contact admin.');
+          return;
+        }
 
-  // Exact match
-  const meterData = replacementData.find(row => {
-    const oldMeter = row.old_meter_number;
-    return oldMeter && oldMeter.toString().trim().toUpperCase() === oldMeterNumber.toUpperCase();
-  });
+        const meterData = replacementData.find(row => {
+          const oldMeter = row.old_meter_number;
+          return oldMeter && oldMeter.toString().trim().toUpperCase() === oldMeterNumber.toUpperCase();
+        });
 
-  // Partial match if exact not found
-  if (!meterData) {
-    const partialMatch = replacementData.find(row => {
-      const oldMeter = row.old_meter_number;
-      return oldMeter && oldMeter.toString().trim().toUpperCase().includes(oldMeterNumber.toUpperCase());
-    });
-    
-    if (partialMatch) {
-      setCurrentMeterData(partialMatch);
-    } else {
-      alert(`Meter "${oldMeterNumber}" not found in replacement orders.`);
-    }
-  } else {
-    setCurrentMeterData(meterData);
-  }
-};
+        if (!meterData) {
+          const partialMatch = replacementData.find(row => {
+            const oldMeter = row.old_meter_number;
+            return oldMeter && oldMeter.toString().trim().toUpperCase().includes(oldMeterNumber.toUpperCase());
+          });
+          
+          if (partialMatch) {
+            setCurrentMeterData(partialMatch);
+          } else {
+            alert(`Meter "${oldMeterNumber}" not found in replacement orders.`);
+          }
+        } else {
+          setCurrentMeterData(meterData);
+        }
+      };
 
       const addToDataset = async () => {
-  if (!currentMeterData) {
-    alert('Please lookup a meter first');
-    return;
-  }
+        if (!currentMeterData) {
+          alert('Please lookup a meter first');
+          return;
+        }
 
-  setIsSaving(true);
+        if (processedMeters.length >= MAX_ENTRIES) {
+          alert(`You have reached the maximum limit of ${MAX_ENTRIES} entries. Please export your data and start fresh.`);
+          return;
+        }
 
-  try {
-    const meterPhase = currentMeterData.meter_phase || '';
-    const phaseValue = meterPhase.includes('3') ? '3' : '1';
-    
-    const faultType = currentMeterData.fault_type || '';
-    const reasonForRemoval = replacementReasons[faultType] || faultType || 'Faulty Meter';
+        setIsSaving(true);
 
-    const contractorCode = currentMeterData.contractor_code || '';
-    const focName = contractorCodeToFOC[contractorCode] || contractorCode || 'Unknown FOC';
-
-    const processedMeter = {
-    user_id: userId,        
-    user_name: userName,     
-    box_number: boxNumber || 'N/A',
-    service_point_number: currentMeterData.service_point_number?.toString() || '',
-    meter_number: currentMeterData.old_meter_number || '',
-    different_meter_number: differentMeterNumber || '',
-    ppm_cm: 'PPM',
-    final_reading: finalReading || '',
-    units: '-',
-    ghc: '-',
-    year_of_make: yearOfMake || '',
-    manufacturer: manufacturer || '',
-    uiu: '-',
-    phase: phaseValue,
-    enclosure: '',
-    sim_card: '',
-    cable_length: '',
-    rating: rating || '',
-    date_removed: currentMeterData.date_started || '',
-    reason_for_removal: reasonForRemoval,
-    breaker: '',
-    foc: focName,
-    created_at: new Date().toISOString()
- };
+        try {
+          const processedMeter = {
+            user_id: userId,
+            user_name: userName,
+            order_data: currentMeterData,
+            created_at: new Date().toISOString()
+          };
 
           const { data, error } = await supabase
             .from('processed_meters')
@@ -351,7 +238,7 @@ setProcessedMeters(metersData || []);
           setProcessedMeters([data[0], ...processedMeters]);
           
           clearForm();
-          alert('Meter added to dataset and saved to cloud successfully!');
+          alert(`Meter added successfully! (${processedMeters.length + 1}/${MAX_ENTRIES})`);
         } catch (error) {
           console.error('Error saving to Supabase:', error);
           alert(`Error saving data: ${error.message}`);
@@ -360,51 +247,44 @@ setProcessedMeters(metersData || []);
         }
       };
 
-const clearForm = () => {
-  setOldMeterNumber('');
-  setBoxNumber('');
-  setDifferentMeterNumber('');
-  setYearOfMake('');
-  setManufacturer('');
-  setFinalReading('');
-  setRating('');
-  setCurrentMeterData(null);
-};
+      const clearForm = () => {
+        setOldMeterNumber('');
+        setCurrentMeterData(null);
+      };
 
       const clearDataset = async () => {
-  if (processedMeters.length === 0) {
-    alert('Dataset is already empty');
-    return;
-  }
-  
-  if (window.confirm('Are you sure you want to clear the entire dataset? This will delete all data from the cloud.')) {
-    try {
-      // Delete all records by getting all IDs and deleting them
-const { data: userRecords, error: fetchError } = await supabase
-  .from('processed_meters')
-  .select('id')
-  .eq('user_id', userId);  // ← ADD THIS LINE
+        if (processedMeters.length === 0) {
+          alert('Dataset is already empty');
+          return;
+        }
+        
+        if (window.confirm('Are you sure you want to clear the entire dataset? This will delete all data from the cloud.')) {
+          try {
+            const { data: userRecords, error: fetchError } = await supabase
+              .from('processed_meters')
+              .select('id')
+              .eq('user_id', userId);
 
-if (fetchError) throw fetchError;
+            if (fetchError) throw fetchError;
 
-if (userRecords && userRecords.length > 0) {  // ← Change allRecords to userRecords
-  const ids = userRecords.map(record => record.id);
-        const { error: deleteError } = await supabase
-          .from('processed_meters')
-          .delete()
-          .in('id', ids);  //
+            if (userRecords && userRecords.length > 0) {
+              const ids = userRecords.map(record => record.id);
+              const { error: deleteError } = await supabase
+                .from('processed_meters')
+                .delete()
+                .in('id', ids);
 
-        if (deleteError) throw deleteError;
-      }
+              if (deleteError) throw deleteError;
+            }
 
-      setProcessedMeters([]);
-      alert('Dataset cleared successfully!');
-    } catch (error) {
-      console.error('Clear dataset error:', error);
-      alert(`Error clearing dataset: ${error.message}`);
-    }
-  }
-};
+            setProcessedMeters([]);
+            alert('Dataset cleared successfully!');
+          } catch (error) {
+            console.error('Clear dataset error:', error);
+            alert(`Error clearing dataset: ${error.message}`);
+          }
+        }
+      };
 
       const exportExcel = () => {
         if (processedMeters.length === 0) {
@@ -412,55 +292,128 @@ if (userRecords && userRecords.length > 0) {  // ← Change allRecords to userRe
           return;
         }
 
-const headers = [
-  'BOX NO',
-  'SERVICE POINT NUMBER',
-  'METER NUMBER',
-  'DIFFERENT METER NUMBER ON FIELD',
-  'PPM / CM',
-  'FINAL READING',
-  'UNITS(kWh)',
-  'GH¢',
-  'YEAR OF MAKE',
-  'MANUFACTURER',
-  'USER INTERFACE UNIT (UIU)',
-  'PHASE (1/3)',
-  'ENCLOSURE',
-  'SIM CARD',
-  'CABLE LENGTH (M)',
-  'RATING',
-  'DATE METER REMOVED',
-  'REASON FOR REMOVAL',
-  'BREAKER',
-  'F0C'
-];
+        const headers = [
+          'SN', 'CMS REGION CODE', 'DISTRICT CODE', 'SERVICE ORDER CODE', 'SERVICE ORDER TYPE',
+          'SERVICE POINT NUMBER', 'CUSTOMER NAME', 'CUSTOMER PHONE', 'EMAIL', 'GEOCODE',
+          'TARIFF CODE', 'METER PHASE', 'OLD METER NUMBER', 'REQUESTED METER PHASE', 'NEW METER NUMBER',
+          'FAULT TYPE', 'DIGITAL ADDRESS', 'ORDER STATUS', 'RETIREMENT CODE', 'PREPAID SYNC METHOD',
+          'PREPAID SYNC STATUS', 'CONTRACTOR CODE', 'AGENT CODE', 'DATE CREATED', 'DATE ASSIGNED',
+          'DATE ASSIGNED TO FOC', 'ASSIGNED TO FOC BY', 'DATE STARTED', 'DATE RESOLVED', 'DATE APPROVED',
+          'APPROVED BY', 'DATE COMPLETED', 'PRESET AMOUNT', 'Batch ID', 'Org ID',
+          'COSEM Logical Device Name', 'MFG Serial Number', 'Customer Serial Number', 'Manufacturer', 'Model Type',
+          'IP Address', 'GPRS Module Serial Number', 'Firmware Type', 'Firmware Version', 'LLS Secret',
+          'HLS Secret', 'Authentication', 'Encryption Key', 'MAC', 'Badge ID',
+          'BLANK', 'RE-ROUTING TYPE', 'UIU RELEASED', 'Meter Enclosures - Three Phase', 'Meter Enclosures - Single Phase',
+          'Soft Al Binding Wire', '9m Wooden Pole', 'Stay equipment c/w Rod & plate, Bow, 2No. Brackets & 2No. Thimbles and M16 * 40mm bolts and nuts',
+          'LV Stay Insulator', '50/25 bolted type Aluminium tap off clamp', 'Green/Blue Meter Seals', 'Tower Clips',
+          'Wooden Stay block', 'Stay wire-7/4 SWG', 'LV Shackle Insulator- Porcelain (76mm height)', 'D Iron C/W Pin (99mm *120mm *6mm) Large',
+          'Coachscrew Insulator (Wonpiece)', 'LV Insulating Tape', '50sq.mm Al bare conductor', '120 sq.mm Al bare conductor',
+          'Bolt & Nut (m16 x 260)', '120/25 bolted type Aluminium tap off clamp', '16CU/25AL bi-metal ferrule compression type',
+          '8m Wooden Pole', '2*25sq.mm PVC Al Cable', 'UIU Cable', '7mm Clip', 'Breaker',
+          '35Cu/25Al Bi-Metallic tap off clamp', '70Cu/25Al Bi-Metallic tap off clamp', 'Undersized Cable(s)',
+          'SL 7000 DTM with Enclosure, Rogoskwi Coils and Voltage Taps', 'I-Smart with Enclosure', 'Flexible Tube (Bury cables)',
+          'Bolt, Nut and Washers', 'Bi-metal Lug (35sqmm)', 'Cable belt (Large)', '2x35sqmm AL PVC Cable',
+          'Enclosure strap', 'Bandit Tape', 'Hexing meter complete with Metering cubicle'
+        ];
 
         const data = [headers];
         
-processedMeters.forEach(meter => {
-  data.push([
-    meter.box_number,
-    meter.service_point_number,
-    meter.meter_number,
-    meter.different_meter_number,
-    meter.ppm_cm,
-    meter.final_reading,
-    meter.units,
-    meter.ghc,
-    meter.year_of_make,
-    meter.manufacturer,
-    meter.uiu,
-    meter.phase,
-    meter.enclosure,
-    meter.sim_card,
-    meter.cable_length,
-    meter.rating,
-    meter.date_removed,
-    meter.reason_for_removal,
-    meter.breaker,
-    meter.foc
-  ]);
-});
+        processedMeters.forEach(meter => {
+          const orderData = meter.order_data || {};
+          data.push([
+            orderData.sn || '',
+            orderData.cms_region_code || '',
+            orderData.district_code || '',
+            orderData.service_order_code || '',
+            orderData.service_order_type || '',
+            orderData.service_point_number || '',
+            orderData.customer_name || '',
+            orderData.customer_phone || '',
+            orderData.email || '',
+            orderData.geocode || '',
+            orderData.tariff_code || '',
+            orderData.meter_phase || '',
+            orderData.old_meter_number || '',
+            orderData.requested_meter_phase || '',
+            orderData.new_meter_number || '',
+            orderData.fault_type || '',
+            orderData.digital_address || '',
+            orderData.order_status || '',
+            orderData.retirement_code || '',
+            orderData.prepaid_sync_method || '',
+            orderData.prepaid_sync_status || '',
+            orderData.contractor_code || '',
+            orderData.agent_code || '',
+            orderData.date_created || '',
+            orderData.date_assigned || '',
+            orderData.date_assigned_to_foc || '',
+            orderData.assigned_to_foc_by || '',
+            orderData.date_started || '',
+            orderData.date_resolved || '',
+            orderData.date_approved || '',
+            orderData.approved_by || '',
+            orderData.date_completed || '',
+            orderData.preset_amount || '',
+            orderData.batch_id || '',
+            orderData.org_id || '',
+            orderData.cosem_logical_device_name || '',
+            orderData.mfg_serial_number || '',
+            orderData.customer_serial_number || '',
+            orderData.manufacturer || '',
+            orderData.model_type || '',
+            orderData.ip_address || '',
+            orderData.gprs_module_serial_number || '',
+            orderData.firmware_type || '',
+            orderData.firmware_version || '',
+            orderData.lls_secret || '',
+            orderData.hls_secret || '',
+            orderData.authentication || '',
+            orderData.encryption_key || '',
+            orderData.mac || '',
+            orderData.badge_id || '',
+            orderData.blank || '',
+            orderData.re_routing_type || '',
+            orderData.uiu_released || '',
+            orderData.meter_enclosures_three_phase || '',
+            orderData.meter_enclosures_single_phase || '',
+            orderData.soft_al_binding_wire || '',
+            orderData.wooden_pole_9m || '',
+            orderData.stay_equipment || '',
+            orderData.lv_stay_insulator || '',
+            orderData.aluminium_tap_off_clamp_50_25 || '',
+            orderData.meter_seals || '',
+            orderData.tower_clips || '',
+            orderData.wooden_stay_block || '',
+            orderData.stay_wire || '',
+            orderData.lv_shackle_insulator || '',
+            orderData.d_iron || '',
+            orderData.coachscrew_insulator || '',
+            orderData.lv_insulating_tape || '',
+            orderData.al_bare_conductor_50 || '',
+            orderData.al_bare_conductor_120 || '',
+            orderData.bolt_nut || '',
+            orderData.aluminium_tap_off_clamp_120_25 || '',
+            orderData.bi_metal_ferrule || '',
+            orderData.wooden_pole_8m || '',
+            orderData.pvc_al_cable_2x25 || '',
+            orderData.uiu_cable || '',
+            orderData.clip_7mm || '',
+            orderData.breaker || '',
+            orderData.bi_metallic_tap_off_clamp_35 || '',
+            orderData.bi_metallic_tap_off_clamp_70 || '',
+            orderData.undersized_cables || '',
+            orderData.sl_7000_dtm || '',
+            orderData.i_smart || '',
+            orderData.flexible_tube || '',
+            orderData.bolt_nut_washers || '',
+            orderData.bi_metal_lug || '',
+            orderData.cable_belt || '',
+            orderData.pvc_al_cable_2x35 || '',
+            orderData.enclosure_strap || '',
+            orderData.bandit_tape || '',
+            orderData.hexing_meter || ''
+          ]);
+        });
 
         const worksheet = XLSX.utils.aoa_to_sheet(data);
         const workbook = XLSX.utils.book_new();
@@ -468,33 +421,32 @@ processedMeters.forEach(meter => {
         XLSX.writeFile(workbook, `FOC_Meter_Data_${userName}_${new Date().toISOString().split('T')[0]}.xlsx`);
       };
 
-      // ADD THIS ENTIRE LOGIN SCREEN
-if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-blue-600" />
+      if (!isLoggedIn) {
+        return (
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 max-w-md w-full">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-blue-600" />
+                </div>
+                <h1 className="text-2xl font-semibold text-gray-800 mb-2">FOC Login</h1>
+                <p className="text-sm text-gray-600">Enter your name to start recording meter data</p>
+              </div>
+              
+              <button
+                onClick={handleLogin}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all text-base"
+              >
+                Login / Start Session
+              </button>
+              
+              <div className="mt-6 text-center text-xs text-gray-500">
+                <p>Your data will be saved separately from other FOCs</p>
+              </div>
             </div>
-            <h1 className="text-2xl font-semibold text-gray-800 mb-2">FOC Login</h1>
-            <p className="text-sm text-gray-600">Enter your name to start recording meter data</p>
           </div>
-          
-          <button
-            onClick={handleLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all text-base"
-          >
-            Login / Start Session
-          </button>
-          
-          <div className="mt-6 text-center text-xs text-gray-500">
-            <p>Your data will be saved separately from other FOCs</p>
-          </div>
-        </div>
-      </div>
-    );
-}
+        );
+      }
 
       if (isLoading) {
         return (
@@ -507,9 +459,10 @@ if (!isLoggedIn) {
         );
       }
 
-       return (
+      const remainingEntries = MAX_ENTRIES - processedMeters.length;
+
+      return (
         <div className="min-h-screen bg-gray-50">
-          {/* Top Navigation Bar */}
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex justify-between items-center">
               <div>
@@ -532,7 +485,6 @@ if (!isLoggedIn) {
           </div>
 
           <div className="max-w-7xl mx-auto p-6">
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="text-sm text-gray-500 mb-1">Total Orders</div>
@@ -540,11 +492,13 @@ if (!isLoggedIn) {
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="text-sm text-gray-500 mb-1">Processed</div>
-                <div className="text-2xl font-bold text-green-600">{processedMeters.length}</div>
+                <div className="text-2xl font-bold text-green-600">{processedMeters.length}/{MAX_ENTRIES}</div>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="text-sm text-gray-500 mb-1">Pending</div>
-                <div className="text-2xl font-bold text-orange-600">{replacementData.length - processedMeters.length}</div>
+                <div className="text-sm text-gray-500 mb-1">Remaining</div>
+                <div className={`text-2xl font-bold ${remainingEntries <= 5 ? 'text-red-600' : 'text-orange-600'}`}>
+                  {remainingEntries}
+                </div>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <button
@@ -557,13 +511,21 @@ if (!isLoggedIn) {
               </div>
             </div>
 
+            {remainingEntries === 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-semibold text-red-800 mb-1">Maximum Entries Reached</h3>
+                  <p className="text-sm text-red-700">You have reached the maximum limit of {MAX_ENTRIES} entries. Please export your data and clear the dataset to continue.</p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
-              
-              {/* Meter Lookup Section */}
               <div className="border-b border-gray-200 pb-4 mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Meter Data Entry</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Meter Lookup</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Old Meter Number</label>
                     <input
@@ -573,25 +535,15 @@ if (!isLoggedIn) {
                       placeholder="Enter meter number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                       onKeyPress={(e) => e.key === 'Enter' && lookupMeter()}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Box Number</label>
-                    <input
-                      type="text"
-                      value={boxNumber}
-                      onChange={(e) => setBoxNumber(e.target.value)}
-                      placeholder="Enter box number"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+                      disabled={remainingEntries === 0}
                     />
                   </div>
 
                   <div className="flex items-end">
                     <button
                       onClick={lookupMeter}
-                      disabled={isLoading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      disabled={isLoading || remainingEntries === 0}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Search className="w-4 h-4" />
                       Lookup Meter
@@ -603,114 +555,36 @@ if (!isLoggedIn) {
               {currentMeterData && (
                 <>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Found Meter Details</h3>
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Order Details</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                       <div><span className="text-gray-500">Service Point:</span> <span className="font-medium">{currentMeterData.service_point_number || 'N/A'}</span></div>
                       <div><span className="text-gray-500">Old Meter:</span> <span className="font-medium">{currentMeterData.old_meter_number || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">New Meter:</span> <span className="font-medium">{currentMeterData.new_meter_number || 'N/A'}</span></div>
                       <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{currentMeterData.customer_name || 'N/A'}</span></div>
                       <div><span className="text-gray-500">Date Started:</span> <span className="font-medium">{currentMeterData.date_started || 'N/A'}</span></div>
                       <div><span className="text-gray-500">Fault Type:</span> <span className="font-medium">{currentMeterData.fault_type || 'N/A'}</span></div>
                       <div><span className="text-gray-500">Contractor:</span> <span className="font-medium">{currentMeterData.contractor_code || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Order Status:</span> <span className="font-medium">{currentMeterData.order_status || 'N/A'}</span></div>
+                      <div><span className="text-gray-500">Meter Phase:</span> <span className="font-medium">{currentMeterData.meter_phase || 'N/A'}</span></div>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Additional Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Different Number on Field</label>
-                        <input
-                          type="text"
-                          value={differentMeterNumber}
-                          onChange={(e) => setDifferentMeterNumber(e.target.value)}
-                          placeholder="If different"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Year of Make</label>
-                        <input
-                          type="number"
-                          value={yearOfMake}
-                          onChange={(e) => setYearOfMake(e.target.value)}
-                          placeholder="Enter year"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Manufacturer</label>
-                        <select
-                          value={manufacturer}
-                          onChange={(e) => setManufacturer(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
-                        >
-                          <option value="">Select Manufacturer</option>
-                          <option value="Saral-S1A">Saral-S1A</option>
-                          <option value="Undefined 1 (Conv.)-Undefined">Undefined 1 (Conv.)-Undefined</option>
-                          <option value="KAIFA-CG102E">KAIFA-CG102E</option>
-                          <option value="GEM-EM341-4">GEM-EM341-4</option>
-                          <option value="INTECH-HXE12">INTECH-HXE12</option>
-                          <option value="SECURE SPRINT 350-IEC-62053-21">SECURE SPRINT 350-IEC-62053-21</option>
-                          <option value="I-CREDIT 350-E1C">I-CREDIT 350-E1C</option>
-                          <option value="MBH POWER-MN123E">MBH POWER-MN123E</option>
-                          <option value="LONGI">LONGI</option>
-                          <option value="SMART CASH (BXC)-RD363Q">SMART CASH (BXC)-RD363Q</option>
-                          <option value="KUNKUN">KUNKUN</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Final Reading</label>
-                        <input
-                          type="text"
-                          value={finalReading}
-                          onChange={(e) => setFinalReading(e.target.value)}
-                          placeholder="Enter final reading"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Rating</label>
-                        <select
-                          value={rating}
-                          onChange={(e) => setRating(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
-                        >
-                          <option value="">Select Rating</option>
-                          <option value="5/60">5/60</option>
-                          <option value="5/100">5/100</option>
-                          <option value="5/25">5/25</option>
-                          <option value="5/15">5/15</option>
-                          <option value="10/100">10/100</option>
-                          <option value="10/60">10/60</option>
-                          <option value="10/80">10/80</option>
-                          <option value="15/60">15/60</option>
-                          <option value="20/80">20/80</option>
-                          <option value="20/60">20/60</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 mt-6">
-                      <button
-                        onClick={addToDataset}
-                        disabled={isSaving}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50"
-                      >
-                        {isSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {isSaving ? 'Saving...' : 'Add to Dataset'}
-                      </button>
-                      
-                      <button
-                        onClick={clearForm}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all"
-                      >
-                        Clear Form
-                      </button>
-                    </div>
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={addToDataset}
+                      disabled={isSaving || remainingEntries === 0}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {isSaving ? 'Saving...' : 'Add to Dataset'}
+                    </button>
+                    
+                    <button
+                      onClick={clearForm}
+                      className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all"
+                    >
+                      Clear
+                    </button>
                   </div>
                 </>
               )}
@@ -720,7 +594,7 @@ if (!isLoggedIn) {
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <h2 className="text-lg font-semibold text-gray-800">Processed Meters</h2>
-                      <p className="text-sm text-gray-500">Showing 1 to {Math.min(10, processedMeters.length)} of {processedMeters.length} results</p>
+                      <p className="text-sm text-gray-500">Showing {processedMeters.length} of {MAX_ENTRIES} maximum entries</p>
                     </div>
                     
                     <div className="flex gap-3">
@@ -728,52 +602,54 @@ if (!isLoggedIn) {
                         onClick={exportExcel}
                         className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
                       >
-                        <Download className="w-4 h-4" /> Export Excel </button>
+                        <Download className="w-4 h-4" />
+                        Export Excel
+                      </button>
                       <button
-                    onClick={clearDataset}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    Clear All
-                  </button>
-                </div>
-              </div>
+                        onClick={clearDataset}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Box</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Service Point</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Meter Number</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Year</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Manufacturer</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">FOC</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {processedMeters.map((meter, index) => (
-                        <tr key={meter.id || index} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-gray-800">{meter.box_number}</td>
-                          <td className="px-4 py-3 text-gray-800">{meter.service_point_number}</td>
-                          <td className="px-4 py-3 text-gray-800 font-medium">{meter.meter_number}</td>
-                          <td className="px-4 py-3 text-gray-600">{meter.year_of_make}</td>
-                          <td className="px-4 py-3 text-gray-600">{meter.manufacturer}</td>
-                          <td className="px-4 py-3 text-gray-800">{meter.foc}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Entry #</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Service Point</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Old Meter</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">New Meter</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Customer</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {processedMeters.map((meter, index) => (
+                            <tr key={meter.id || index} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-4 py-3 text-gray-600">{processedMeters.length - index}</td>
+                              <td className="px-4 py-3 text-gray-800">{meter.order_data?.service_point_number || 'N/A'}</td>
+                              <td className="px-4 py-3 text-gray-800 font-medium">{meter.order_data?.old_meter_number || 'N/A'}</td>
+                              <td className="px-4 py-3 text-gray-800">{meter.order_data?.new_meter_number || 'N/A'}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{meter.order_data?.customer_name || 'N/A'}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{meter.order_data?.date_started || 'N/A'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
-    </div>
-  );
-};
+      );
+    };
       
     ReactDOM.render(<FOCDataEntry />, document.getElementById('root'));
   </script>

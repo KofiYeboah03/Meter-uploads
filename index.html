@@ -73,7 +73,6 @@
     );
 
     const FOCDataEntry = () => {
-      const [allOrders, setAllOrders] = useState([]);
       const [replacementOrders, setReplacementOrders] = useState([]);
       const [regularizationOrders, setRegularizationOrders] = useState([]);
       const [processedMeters, setProcessedMeters] = useState([]);
@@ -134,43 +133,52 @@
       const loadFromSupabase = async () => {
         setIsLoading(true);
         try {
-          let allOrdersData = [];
+          let allReplacementData = [];
+          let allRegularizationData = [];
           let from = 0;
           const batchSize = 1000;
-          let hasMore = true;
 
-          while (hasMore) {
-            const { data: ordersData, error: ordersError } = await supabase
+          let hasMoreReplacement = true;
+          while (hasMoreReplacement) {
+            const { data: replacementData, error: replacementError } = await supabase
               .from('replacement_orders')
               .select('*')
               .order('uploaded_at', { ascending: false })
               .range(from, from + batchSize - 1);
 
-            if (ordersError) throw ordersError;
+            if (replacementError) throw replacementError;
 
-            if (ordersData && ordersData.length > 0) {
-              allOrdersData = [...allOrdersData, ...ordersData];
+            if (replacementData && replacementData.length > 0) {
+              allReplacementData = [...allReplacementData, ...replacementData];
               from += batchSize;
-              hasMore = ordersData.length === batchSize;
+              hasMoreReplacement = replacementData.length === batchSize;
             } else {
-              hasMore = false;
+              hasMoreReplacement = false;
             }
           }
 
-          setAllOrders(allOrdersData);
-          
-          const replacement = allOrdersData.filter(order => {
-            const serviceType = (order.service_order_type || '').toString().toLowerCase();
-            return serviceType.includes('replacement') || serviceType === 'replacement';
-          });
-          
-          const regularization = allOrdersData.filter(order => {
-            const serviceType = (order.service_order_type || '').toString().toLowerCase();
-            return serviceType.includes('regularization') || serviceType === 'regularization';
-          });
-          
-          setReplacementOrders(replacement);
-          setRegularizationOrders(regularization);
+          from = 0;
+          let hasMoreRegularization = true;
+          while (hasMoreRegularization) {
+            const { data: regularizationData, error: regularizationError } = await supabase
+              .from('regularization_orders')
+              .select('*')
+              .order('uploaded_at', { ascending: false })
+              .range(from, from + batchSize - 1);
+
+            if (regularizationError) throw regularizationError;
+
+            if (regularizationData && regularizationData.length > 0) {
+              allRegularizationData = [...allRegularizationData, ...regularizationData];
+              from += batchSize;
+              hasMoreRegularization = regularizationData.length === batchSize;
+            } else {
+              hasMoreRegularization = false;
+            }
+          }
+
+          setReplacementOrders(allReplacementData);
+          setRegularizationOrders(allRegularizationData);
           
           const { data: metersData, error: metersError } = await supabase
             .from('processed_meters')
@@ -311,127 +319,127 @@
           return;
         }
 
-        const headers = [
-          'SN', 'CMS REGION CODE', 'DISTRICT CODE', 'SERVICE ORDER CODE', 'SERVICE ORDER TYPE',
-          'SERVICE POINT NUMBER', 'CUSTOMER NAME', 'CUSTOMER PHONE', 'EMAIL', 'GEOCODE',
-          'TARIFF CODE', 'METER PHASE', 'OLD METER NUMBER', 'REQUESTED METER PHASE', 'NEW METER NUMBER',
-          'FAULT TYPE', 'DIGITAL ADDRESS', 'ORDER STATUS', 'RETIREMENT CODE', 'PREPAID SYNC METHOD',
-          'PREPAID SYNC STATUS', 'CONTRACTOR CODE', 'AGENT CODE', 'DATE CREATED', 'DATE ASSIGNED',
-          'DATE ASSIGNED TO FOC', 'ASSIGNED TO FOC BY', 'DATE STARTED', 'DATE RESOLVED', 'DATE APPROVED',
-          'APPROVED BY', 'DATE COMPLETED', 'PRESET AMOUNT', 'Batch ID', 'Org ID',
-          'COSEM Logical Device Name', 'MFG Serial Number', 'Customer Serial Number', 'Manufacturer', 'Model Type',
-          'IP Address', 'GPRS Module Serial Number', 'Firmware Type', 'Firmware Version', 'LLS Secret',
-          'HLS Secret', 'Authentication', 'Encryption Key', 'MAC', 'Badge ID',
-          'BLANK', 'RE-ROUTING TYPE', 'UIU RELEASED', 'Meter Enclosures - Three Phase', 'Meter Enclosures - Single Phase',
-          'Soft Al Binding Wire', '9m Wooden Pole', 'Stay equipment c/w Rod & plate, Bow, 2No. Brackets & 2No. Thimbles and M16 * 40mm bolts and nuts',
-          'LV Stay Insulator', '50/25 bolted type Aluminium tap off clamp', 'Green/Blue Meter Seals', 'Tower Clips',
-          'Wooden Stay block', 'Stay wire-7/4 SWG', 'LV Shackle Insulator- Porcelain (76mm height)', 'D Iron C/W Pin (99mm *120mm *6mm) Large',
-          'Coachscrew Insulator (Wonpiece)', 'LV Insulating Tape', '50sq.mm Al bare conductor', '120 sq.mm Al bare conductor',
-          'Bolt & Nut (m16 x 260)', '120/25 bolted type Aluminium tap off clamp', '16CU/25AL bi-metal ferrule compression type',
-          '8m Wooden Pole', '2*25sq.mm PVC Al Cable', 'UIU Cable', '7mm Clip', 'Breaker',
-          '35Cu/25Al Bi-Metallic tap off clamp', '70Cu/25Al Bi-Metallic tap off clamp', 'Undersized Cable(s)',
-          'SL 7000 DTM with Enclosure, Rogoskwi Coils and Voltage Taps', 'I-Smart with Enclosure', 'Flexible Tube (Bury cables)',
-          'Bolt, Nut and Washers', 'Bi-metal Lug (35sqmm)', 'Cable belt (Large)', '2x35sqmm AL PVC Cable',
-          'Enclosure strap', 'Bandit Tape', 'Hexing meter complete with Metering cubicle'
-        ];
+        let headers = [];
+        
+        if (orderType === 'replacement') {
+          headers = [
+            'SN', 'CMS REGION CODE', 'DISTRICT CODE', 'SERVICE ORDER CODE', 'SERVICE ORDER TYPE',
+            'SERVICE POINT NUMBER', 'CUSTOMER NAME', 'CUSTOMER PHONE', 'EMAIL', 'GEOCODE',
+            'TARIFF CODE', 'METER PHASE', 'OLD METER NUMBER', 'REQUESTED METER PHASE', 'NEW METER NUMBER',
+            'FAULT TYPE', 'DIGITAL ADDRESS', 'ORDER STATUS', 'RETIREMENT CODE', 'PREPAID SYNC METHOD',
+            'PREPAID SYNC STATUS', 'CONTRACTOR CODE', 'AGENT CODE', 'DATE CREATED', 'DATE ASSIGNED',
+            'DATE ASSIGNED TO FOC', 'ASSIGNED TO FOC BY', 'DATE STARTED', 'DATE RESOLVED', 'DATE APPROVED',
+            'APPROVED BY', 'DATE COMPLETED', 'PRESET AMOUNT', 'Batch ID', 'Org ID',
+            'COSEM Logical Device Name', 'MFG Serial Number', 'Customer Serial Number', 'Manufacturer', 'Model Type',
+            'IP Address', 'GPRS Module Serial Number', 'Firmware Type', 'Firmware Version', 'LLS Secret',
+            'HLS Secret', 'Authentication', 'Encryption Key', 'MAC', 'Badge ID',
+            'BLANK', 'RE-ROUTING TYPE', 'UIU RELEASED', 'Meter Enclosures - Three Phase', 'Meter Enclosures - Single Phase',
+            'Soft Al Binding Wire', '9m Wooden Pole', 'Stay equipment c/w Rod & plate, Bow, 2No. Brackets & 2No. Thimbles and M16 * 40mm bolts and nuts',
+            'LV Stay Insulator', '50/25 bolted type Aluminium tap off clamp', 'Green/Blue Meter Seals', 'Tower Clips',
+            'Wooden Stay block', 'Stay wire-7/4 SWG', 'LV Shackle Insulator- Porcelain (76mm height)', 'D Iron C/W Pin (99mm *120mm *6mm) Large',
+            'Coachscrew Insulator (Wonpiece)', 'LV Insulating Tape', '50sq.mm Al bare conductor', '120 sq.mm Al bare conductor',
+            'Bolt & Nut (m16 x 260)', '120/25 bolted type Aluminium tap off clamp', '16CU/25AL bi-metal ferrule compression type',
+            '8m Wooden Pole', '2*25sq.mm PVC Al Cable', 'UIU Cable', '7mm Clip', 'Breaker',
+            '35Cu/25Al Bi-Metallic tap off clamp', '70Cu/25Al Bi-Metallic tap off clamp', 'Undersized Cable(s)',
+            'SL 7000 DTM with Enclosure, Rogoskwi Coils and Voltage Taps', 'I-Smart with Enclosure', 'Flexible Tube (Bury cables)',
+            'Bolt, Nut and Washers', 'Bi-metal Lug (35sqmm)', 'Cable belt (Large)', '2x35sqmm AL PVC Cable',
+            'Enclosure strap', 'Bandit Tape', 'Hexing meter complete with Metering cubicle'
+          ];
+        } else {
+          headers = [
+            'SN', 'CMS REGION CODE', 'DISTRICT CODE', 'SERVICE ORDER CODE', 'SERVICE ORDER TYPE', 'INSTALLATION TYPE',
+            'SERVICE POINT NUMBER', 'CUSTOMER NAME', 'CUSTOMER PHONE', 'EMAIL', 'GEOCODE',
+            'TARIFF CODE', 'METER PHASE', 'OLD METER NUMBER', 'DIGITAL ADDRESS', 'ORDER STATUS',
+            'PREPAID SYNC METHOD', 'PREPAID SYNC STATUS', 'CONTRACTOR CODE', 'AGENT CODE',
+            'DATE CREATED', 'DATE ASSIGNED', 'DATE ASSIGNED TO FOC', 'ASSIGNED TO FOC BY',
+            'DATE STARTED', 'DATE RESOLVED', 'DATE APPROVED', 'APPROVED BY', 'DATE COMPLETED',
+            'PRESET AMOUNT', 'Batch ID', 'Org ID', 'COSEM Logical Device Name', 'MFG Serial Number',
+            'Customer Serial Number', 'Manufacturer', 'Model Type', 'IP Address', 'GPRS Module Serial Number',
+            'Firmware Type', 'Firmware Version', 'LLS Secret', 'HLS Secret', 'Authentication',
+            'Encryption Key', 'MAC', 'Badge ID', 'BLANK', 'RE-ROUTING TYPE', 'UIU RELEASED',
+            'Meter Enclosures - Single Phase', 'Meter Enclosures - Three Phase', 'Coachscrew Insulator (Wonpiece)',
+            'LV Insulating Tape', 'Tower Clips', '50sq.mm Al bare conductor', '120 sq.mm Al bare conductor',
+            '9m Wooden Pole', 'Wooden Stay block', 'Stay wire-7/4 SWG',
+            'Stay equipment c/w Rod & plate, Bow, 2No. Brackets & 2No. Thimbles and M16 * 40mm bolts and nuts',
+            'LV Stay Insulator', '50/25 bolted type Aluminium tap off clamp', 'Bolt & Nut (m16 x 260)',
+            'LV Shackle Insulator- Porcelain (76mm height)', 'Green/Blue Meter Seals', 'Soft Al Binding Wire',
+            '120/25 bolted type Aluminium tap off clamp', 'D Iron C/W Pin (99mm *120mm *6mm) Large',
+            '16CU/25AL bi-metal ferrule compression type', '8m Wooden Pole', '2*25sq.mm PVC Al Cable',
+            'UIU Cable', '7mm Clip', 'Breaker', '35Cu/25Al Bi-Metallic tap off clamp',
+            '70Cu/25Al Bi-Metallic tap off clamp', 'Undersized Cable(s)',
+            'SL 7000 DTM with Enclosure, Rogoskwi Coils and Voltage Taps', 'I-Smart with Enclosure',
+            'Flexible Tube (Bury cables)', 'Bolt, Nut and Washers', 'Bi-metal Lug (35sqmm)',
+            'Cable belt (Large)', '2x35sqmm AL PVC Cable', 'Enclosure strap', 'Bandit Tape',
+            'Hexing meter complete with Metering cubicle'
+          ];
+        }
 
         const data = [headers];
         
         metersToExport.forEach(meter => {
-          const orderData = meter.order_data || {};
-          data.push([
-            orderData.sn || '',
-            orderData.cms_region_code || '',
-            orderData.district_code || '',
-            orderData.service_order_code || '',
-            orderData.service_order_type || '',
-            orderData.service_point_number || '',
-            orderData.customer_name || '',
-            orderData.customer_phone || '',
-            orderData.email || '',
-            orderData.geocode || '',
-            orderData.tariff_code || '',
-            orderData.meter_phase || '',
-            orderData.old_meter_number || '',
-            orderData.requested_meter_phase || '',
-            orderData.new_meter_number || '',
-            orderData.fault_type || '',
-            orderData.digital_address || '',
-            orderData.order_status || '',
-            orderData.retirement_code || '',
-            orderData.prepaid_sync_method || '',
-            orderData.prepaid_sync_status || '',
-            orderData.contractor_code || '',
-            orderData.agent_code || '',
-            orderData.date_created || '',
-            orderData.date_assigned || '',
-            orderData.date_assigned_to_foc || '',
-            orderData.assigned_to_foc_by || '',
-            orderData.date_started || '',
-            orderData.date_resolved || '',
-            orderData.date_approved || '',
-            orderData.approved_by || '',
-            orderData.date_completed || '',
-            orderData.preset_amount || '',
-            orderData.batch_id || '',
-            orderData.org_id || '',
-            orderData.cosem_logical_device_name || '',
-            orderData.mfg_serial_number || '',
-            orderData.customer_serial_number || '',
-            orderData.manufacturer || '',
-            orderData.model_type || '',
-            orderData.ip_address || '',
-            orderData.gprs_module_serial_number || '',
-            orderData.firmware_type || '',
-            orderData.firmware_version || '',
-            orderData.lls_secret || '',
-            orderData.hls_secret || '',
-            orderData.authentication || '',
-            orderData.encryption_key || '',
-            orderData.mac || '',
-            orderData.badge_id || '',
-            orderData.blank || '',
-            orderData.re_routing_type || '',
-            orderData.uiu_released || '',
-            orderData.meter_enclosures_three_phase || '',
-            orderData.meter_enclosures_single_phase || '',
-            orderData.soft_al_binding_wire || '',
-            orderData.wooden_pole_9m || '',
-            orderData.stay_equipment || '',
-            orderData.lv_stay_insulator || '',
-            orderData.aluminium_tap_off_clamp_50_25 || '',
-            orderData.meter_seals || '',
-            orderData.tower_clips || '',
-            orderData.wooden_stay_block || '',
-            orderData.stay_wire || '',
-            orderData.lv_shackle_insulator || '',
-            orderData.d_iron || '',
-            orderData.coachscrew_insulator || '',
-            orderData.lv_insulating_tape || '',
-            orderData.al_bare_conductor_50 || '',
-            orderData.al_bare_conductor_120 || '',
-            orderData.bolt_nut || '',
-            orderData.aluminium_tap_off_clamp_120_25 || '',
-            orderData.bi_metal_ferrule || '',
-            orderData.wooden_pole_8m || '',
-            orderData.pvc_al_cable_2x25 || '',
-            orderData.uiu_cable || '',
-            orderData.clip_7mm || '',
-            orderData.breaker || '',
-            orderData.bi_metallic_tap_off_clamp_35 || '',
-            orderData.bi_metallic_tap_off_clamp_70 || '',
-            orderData.undersized_cables || '',
-            orderData.sl_7000_dtm || '',
-            orderData.i_smart || '',
-            orderData.flexible_tube || '',
-            orderData.bolt_nut_washers || '',
-            orderData.bi_metal_lug || '',
-            orderData.cable_belt || '',
-            orderData.pvc_al_cable_2x35 || '',
-            orderData.enclosure_strap || '',
-            orderData.bandit_tape || '',
-            orderData.hexing_meter || ''
-          ]);
+          const o = meter.order_data || {};
+          
+          if (orderType === 'replacement') {
+            data.push([
+              o.sn || '', o.cms_region_code || '', o.district_code || '', o.service_order_code || '',
+              o.service_order_type || '', o.service_point_number || '', o.customer_name || '',
+              o.customer_phone || '', o.email || '', o.geocode || '', o.tariff_code || '',
+              o.meter_phase || '', o.old_meter_number || '', o.requested_meter_phase || '',
+              o.new_meter_number || '', o.fault_type || '', o.digital_address || '', o.order_status || '',
+              o.retirement_code || '', o.prepaid_sync_method || '', o.prepaid_sync_status || '',
+              o.contractor_code || '', o.agent_code || '', o.date_created || '', o.date_assigned || '',
+              o.date_assigned_to_foc || '', o.assigned_to_foc_by || '', o.date_started || '',
+              o.date_resolved || '', o.date_approved || '', o.approved_by || '', o.date_completed || '',
+              o.preset_amount || '', o.batch_id || '', o.org_id || '', o.cosem_logical_device_name || '',
+              o.mfg_serial_number || '', o.customer_serial_number || '', o.manufacturer || '',
+              o.model_type || '', o.ip_address || '', o.gprs_module_serial_number || '',
+              o.firmware_type || '', o.firmware_version || '', o.lls_secret || '', o.hls_secret || '',
+              o.authentication || '', o.encryption_key || '', o.mac || '', o.badge_id || '',
+              o.blank || '', o.re_routing_type || '', o.uiu_released || '',
+              o.meter_enclosures_three_phase || '', o.meter_enclosures_single_phase || '',
+              o.soft_al_binding_wire || '', o.wooden_pole_9m || '', o.stay_equipment || '',
+              o.lv_stay_insulator || '', o.aluminium_tap_off_clamp_50_25 || '', o.meter_seals || '',
+              o.tower_clips || '', o.wooden_stay_block || '', o.stay_wire || '',
+              o.lv_shackle_insulator || '', o.d_iron || '', o.coachscrew_insulator || '',
+              o.lv_insulating_tape || '', o.al_bare_conductor_50 || '', o.al_bare_conductor_120 || '',
+              o.bolt_nut || '', o.aluminium_tap_off_clamp_120_25 || '', o.bi_metal_ferrule || '',
+              o.wooden_pole_8m || '', o.pvc_al_cable_2x25 || '', o.uiu_cable || '', o.clip_7mm || '',
+              o.breaker || '', o.bi_metallic_tap_off_clamp_35 || '', o.bi_metallic_tap_off_clamp_70 || '',
+              o.undersized_cables || '', o.sl_7000_dtm || '', o.i_smart || '', o.flexible_tube || '',
+              o.bolt_nut_washers || '', o.bi_metal_lug || '', o.cable_belt || '', o.pvc_al_cable_2x35 || '',
+              o.enclosure_strap || '', o.bandit_tape || '', o.hexing_meter || ''
+            ]);
+          } else {
+            data.push([
+              o.sn || '', o.cms_region_code || '', o.district_code || '', o.service_order_code || '',
+              o.service_order_type || '', o.installation_type || '', o.service_point_number || '',
+              o.customer_name || '', o.customer_phone || '', o.email || '', o.geocode || '',
+              o.tariff_code || '', o.meter_phase || '', o.old_meter_number || '', o.digital_address || '',
+              o.order_status || '', o.prepaid_sync_method || '', o.prepaid_sync_status || '',
+              o.contractor_code || '', o.agent_code || '', o.date_created || '', o.date_assigned || '',
+              o.date_assigned_to_foc || '', o.assigned_to_foc_by || '', o.date_started || '',
+              o.date_resolved || '', o.date_approved || '', o.approved_by || '', o.date_completed || '',
+              o.preset_amount || '', o.batch_id || '', o.org_id || '', o.cosem_logical_device_name || '',
+              o.mfg_serial_number || '', o.customer_serial_number || '', o.manufacturer || '',
+              o.model_type || '', o.ip_address || '', o.gprs_module_serial_number || '',
+              o.firmware_type || '', o.firmware_version || '', o.lls_secret || '', o.hls_secret || '',
+              o.authentication || '', o.encryption_key || '', o.mac || '', o.badge_id || '',
+              o.blank || '', o.re_routing_type || '', o.uiu_released || '',
+              o.meter_enclosures_single_phase || '', o.meter_enclosures_three_phase || '',
+              o.coachscrew_insulator || '', o.lv_insulating_tape || '', o.tower_clips || '',
+              o.al_bare_conductor_50 || '', o.al_bare_conductor_120 || '', o.wooden_pole_9m || '',
+              o.wooden_stay_block || '', o.stay_wire || '', o.stay_equipment || '',
+              o.lv_stay_insulator || '', o.aluminium_tap_off_clamp_50_25 || '', o.bolt_nut || '',
+              o.lv_shackle_insulator || '', o.meter_seals || '', o.soft_al_binding_wire || '',
+              o.aluminium_tap_off_clamp_120_25 || '', o.d_iron || '', o.bi_metal_ferrule || '',
+              o.wooden_pole_8m || '', o.pvc_al_cable_2x25 || '', o.uiu_cable || '', o.clip_7mm || '',
+              o.breaker || '', o.bi_metallic_tap_off_clamp_35 || '', o.bi_metallic_tap_off_clamp_70 || '',
+              o.undersized_cables || '', o.sl_7000_dtm || '', o.i_smart || '', o.flexible_tube || '',
+              o.bolt_nut_washers || '', o.bi_metal_lug || '', o.cable_belt || '',
+              o.pvc_al_cable_2x35 || '', o.enclosure_strap || '', o.bandit_tape || '',
+              o.hexing_meter || ''
+            ]);
+          }
         });
 
         const worksheet = XLSX.utils.aoa_to_sheet(data);
@@ -469,266 +477,4 @@
 
       if (isLoading) {
         return (
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="text-center">
-              <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-              <p className="text-gray-700 text-lg font-medium">Loading data from cloud...</p>
-            </div>
-          </div>
-        );
-      }
-
-      const remainingEntries = MAX_ENTRIES - processedMeters.length;
-      const replacementProcessed = processedMeters.filter(m => m.order_type === 'replacement').length;
-      const regularizationProcessed = processedMeters.filter(m => m.order_type === 'regularization').length;
-
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-800">FOC Retired Meter Reconciliation</h1>
-                <p className="text-sm text-gray-500 mt-1">Replacement & Regularization Service Orders</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-lg">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">{userName}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-all"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-7xl mx-auto p-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="text-sm text-gray-500 mb-1">Total Orders</div>
-                <div className="text-2xl font-bold text-gray-800">{allOrders.length}</div>
-              </div>
-              <div className="bg-white rounded-lg border border-blue-200 p-4">
-                <div className="text-sm text-gray-500 mb-1">Replacement</div>
-                <div className="text-2xl font-bold text-blue-600">{replacementOrders.length}</div>
-                <div className="text-xs text-gray-500 mt-1">Processed: {replacementProcessed}</div>
-              </div>
-              <div className="bg-white rounded-lg border border-purple-200 p-4">
-                <div className="text-sm text-gray-500 mb-1">Regularization</div>
-                <div className="text-2xl font-bold text-purple-600">{regularizationOrders.length}</div>
-                <div className="text-xs text-gray-500 mt-1">Processed: {regularizationProcessed}</div>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="text-sm text-gray-500 mb-1">Total Processed</div>
-                <div className="text-2xl font-bold text-green-600">{processedMeters.length}/{MAX_ENTRIES}</div>
-              </div>
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <button
-                  onClick={loadFromSupabase}
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Refresh Data
-                </button>
-              </div>
-            </div>
-
-            {remainingEntries === 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-semibold text-red-800 mb-1">Maximum Entries Reached</h3>
-                  <p className="text-sm text-red-700">You have reached the maximum limit of {MAX_ENTRIES} entries. Please export your data and clear the dataset to continue.</p>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
-              <div className="flex gap-2 border-b border-gray-200 pb-4">
-                <button
-                  onClick={() => {
-                    setActiveTab('replacement');
-                    clearForm();
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'replacement'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Replacement ({replacementOrders.length})
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('regularization');
-                    clearForm();
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    activeTab === 'regularization'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Regularization ({regularizationOrders.length})
-                </button>
-              </div>
-
-              <div className="border-b border-gray-200 pb-4 mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  {activeTab === 'replacement' ? 'Replacement' : 'Regularization'} Meter Lookup
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Old Meter Number</label>
-                    <input
-                      type="text"
-                      value={oldMeterNumber}
-                      onChange={(e) => setOldMeterNumber(e.target.value)}
-                      placeholder="Enter meter number"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-                      onKeyPress={(e) => e.key === 'Enter' && lookupMeter()}
-                      disabled={remainingEntries === 0}
-                    />
-                  </div>
-
-                  <div className="flex items-end">
-                    <button
-                      onClick={lookupMeter}
-                      disabled={isLoading || remainingEntries === 0}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Search className="w-4 h-4" />
-                      Lookup Meter
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {currentMeterData && (
-                <>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Order Details</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div><span className="text-gray-500">Service Point:</span> <span className="font-medium">{currentMeterData.service_point_number || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Old Meter:</span> <span className="font-medium">{currentMeterData.old_meter_number || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">New Meter:</span> <span className="font-medium">{currentMeterData.new_meter_number || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Customer:</span> <span className="font-medium">{currentMeterData.customer_name || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Date Started:</span> <span className="font-medium">{currentMeterData.date_started || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Fault Type:</span> <span className="font-medium">{currentMeterData.fault_type || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Contractor:</span> <span className="font-medium">{currentMeterData.contractor_code || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Order Status:</span> <span className="font-medium">{currentMeterData.order_status || 'N/A'}</span></div>
-                      <div><span className="text-gray-500">Meter Phase:</span> <span className="font-medium">{currentMeterData.meter_phase || 'N/A'}</span></div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={addToDataset}
-                      disabled={isSaving || remainingEntries === 0}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      {isSaving ? 'Saving...' : 'Add to Dataset'}
-                    </button>
-                    
-                    <button
-                      onClick={clearForm}
-                      className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {processedMeters.length > 0 && (
-                <div className="border-t border-gray-200 pt-6 mt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-800">Processed Meters</h2>
-                      <p className="text-sm text-gray-500">
-                        Replacement: {replacementProcessed} | Regularization: {regularizationProcessed} | Total: {processedMeters.length}/{MAX_ENTRIES}
-                      </p>
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => exportExcel('replacement')}
-                        disabled={replacementProcessed === 0}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Download className="w-4 h-4" />
-                        Export Replacement
-                      </button>
-                      <button
-                        onClick={() => exportExcel('regularization')}
-                        disabled={regularizationProcessed === 0}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Download className="w-4 h-4" />
-                        Export Regularization
-                      </button>
-                      <button
-                        onClick={clearDataset}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Clear All
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50 border-b border-gray-200">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Entry #</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Type</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Service Point</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Old Meter</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">New Meter</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Customer</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Date</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {processedMeters.map((meter, index) => (
-                            <tr key={meter.id || index} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-4 py-3 text-gray-600">{processedMeters.length - index}</td>
-                              <td className="px-4 py-3">
-                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-                                  meter.order_type === 'replacement' 
-                                    ? 'bg-blue-100 text-blue-700' 
-                                    : 'bg-purple-100 text-purple-700'
-                                }`}>
-                                  {meter.order_type === 'replacement' ? 'Replacement' : 'Regularization'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-gray-800">{meter.order_data?.service_point_number || 'N/A'}</td>
-                              <td className="px-4 py-3 text-gray-800 font-medium">{meter.order_data?.old_meter_number || 'N/A'}</td>
-                              <td className="px-4 py-3 text-gray-800">{meter.order_data?.new_meter_number || 'N/A'}</td>
-                              <td className="px-4 py-3 text-gray-600 text-xs">{meter.order_data?.customer_name || 'N/A'}</td>
-                              <td className="px-4 py-3 text-gray-600 text-xs">{meter.order_data?.date_started || 'N/A'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    };
-      
-    ReactDOM.render(<FOCDataEntry />, document.getElementById('root'));
-  </script>
-</body>
-</html>
+          <div className="min-h-screen bg-gray-50 flex items-center justify
